@@ -17,7 +17,7 @@ DEPS=Tool.hpp
 all: obj/rialto_tool
 
 obj/rialto_tool: $(OBJS)
-	$(CC) -o $@ $^ $(LDFLAGS) -lpdalcpp -lpdal_util -lrialto -lsqlite3 -llaszip
+	$(CC) -o $@ $^ $(LDFLAGS) -lpdalcpp -lpdal_util -lrialto -lsqlite3 -llaszip -lpthread
 
 obj/%.o: %.cpp
 	@mkdir -p ./obj
