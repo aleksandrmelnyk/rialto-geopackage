@@ -1,7 +1,7 @@
 include ../defs.mk
 
 
-CFLAGS=	-g -std=c++11 -ferror-limit=3 \
+CFLAGS=	-g -std=c++11 \
 -I../include \
 -I$(PDAL_HOME)/include
 
