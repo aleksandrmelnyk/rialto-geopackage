@@ -32,8 +32,8 @@
 * OF SUCH DAMAGE.
 ****************************************************************************/
 
-#include <rialto/ViewTileCommon.hpp>
-#include <rialto/TileMath.hpp>
+#include "ViewTileCommon.hpp"
+#include "TileMath.hpp"
 
 #include <pdal/Log.hpp>
 #include <pdal/pdal_types.hpp>

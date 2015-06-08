@@ -48,9 +48,7 @@
 #include <rialto/GeoPackageCommon.hpp>
 #include <rialto/RialtoReader.hpp>
 #include <rialto/RialtoWriter.hpp>
-#include <rialto/SQLiteCommon.hpp>
-#include <rialto/ViewTileCommon.hpp>
-#include <rialto/TileMath.hpp>
+#include "../src/TileMath.hpp"
 #include "RialtoTest.hpp"
 
 #include "gtest/gtest.h"

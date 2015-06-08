@@ -35,6 +35,7 @@
 #include <rialto/RialtoWriter.hpp>
 #include <rialto/GeoPackageWriter.hpp>
 #include <rialto/GeoPackageCommon.hpp>
+#include "ViewTileCommon.hpp"
 
 
 namespace pdal

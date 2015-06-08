@@ -35,8 +35,8 @@
 #include <rialto/GeoPackageManager.hpp>
 
 #include <rialto/GeoPackageCommon.hpp>
-#include <rialto/SQLiteCommon.hpp>
-#include <rialto/ViewTileCommon.hpp>
+#include "SQLiteCommon.hpp"
+#include "ViewTileCommon.hpp"
 
 
 namespace pdal

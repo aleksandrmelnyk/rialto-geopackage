@@ -44,8 +44,7 @@
 
 #include <rialto/GeoPackage.hpp>
 #include <rialto/GeoPackageCommon.hpp>
-#include <rialto/SQLiteCommon.hpp>
-#include <rialto/ViewTileCommon.hpp>
+
 #include "RialtoTest.hpp"
 
 #include "gtest/gtest.h"

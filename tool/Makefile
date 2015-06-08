@@ -14,12 +14,13 @@ OBJS=obj/Tool.o obj/main.o
 
 DEPS=Tool.hpp
 
-all: obj/tool
+all: obj/rialto_tool
 
-obj/tool: $(OBJS)
+obj/rialto_tool: $(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS) -lpdalcpp -lpdal_util -lrialto -lsqlite3 -llaszip
 
 obj/%.o: %.cpp
+	@mkdir -p ./obj
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(OBJS): $(DEPS)

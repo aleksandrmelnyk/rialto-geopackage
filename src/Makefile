@@ -4,9 +4,6 @@ CFLAGS=	-g -std=c++11 \
 -I ../include \
 -I $(PDAL_HOME)/include
 
-LDFLAGS=-L$(PDAL_HOME)/lib \
--lpdalcpp -lpdal_util
-
 CC=c++
 
 
@@ -23,9 +20,9 @@ DEPS=\
 ../include/rialto/GeoPackageWriter.hpp \
 ../include/rialto/RialtoReader.hpp \
 ../include/rialto/RialtoWriter.hpp \
-../include/rialto/SQLiteCommon.hpp \
-../include/rialto/TileMath.hpp \
-../include/rialto/ViewTileCommon.hpp
+./SQLiteCommon.hpp \
+./TileMath.hpp \
+./ViewTileCommon.hpp
 
 all: obj/librialto.a
 
@@ -33,6 +30,7 @@ obj/librialto.a: $(OBJS)
 	ar rcs $@ $^
 
 obj/%.o: %.cpp
+	@mkdir -p ./obj
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(OBJS): $(DEPS)

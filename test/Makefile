@@ -22,6 +22,7 @@ obj/tester: $(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS) -lrialto -lpdalcpp -lpdal_util -lsqlite3 -lgtest -llaszip -lpthread
 
 obj/%.o: %.cpp
+	@mkdir -p ./obj
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(OBJS): $(DEPS)

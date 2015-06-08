@@ -35,9 +35,9 @@
 #include <rialto/GeoPackageWriter.hpp>
 #include <rialto/GeoPackageCommon.hpp>
 
-#include <rialto/SQLiteCommon.hpp>
-#include <rialto/ViewTileCommon.hpp>
-#include <rialto/TileMath.hpp>
+#include "SQLiteCommon.hpp"
+#include "ViewTileCommon.hpp"
+#include "TileMath.hpp"
 
 namespace pdal
 {

@@ -35,7 +35,6 @@
 #pragma once
 
 #include <pdal/Writer.hpp>
-#include <rialto/ViewTileCommon.hpp>
 
 
 extern "C" int32_t RialtoWriter_ExitFunc();
@@ -47,7 +46,7 @@ namespace pdal
 namespace rialto
 {
     class GeoPackageWriter;
-    
+    class ViewTileSet;
 
 class PDAL_DLL RialtoWriter : public Writer
 {

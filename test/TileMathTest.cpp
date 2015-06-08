@@ -32,7 +32,7 @@
 * OF SUCH DAMAGE.
 ****************************************************************************/
 
-#include <rialto/TileMath.hpp>
+#include "../src/TileMath.hpp"
 
 #include "gtest/gtest.h"
 
