@@ -1,0 +1,9 @@
+*.o
+*.a
+test/obj/tester
+tool/obj/tool
+
+vendor/gtest-1.7.0/CMakeFiles
+vendor/gtest-1.7.0/cmake_install.cmake
+vendor/gtest-1.7.0/Makefile
+vendor/gtest-1.7.0/CMakeCache.txt
