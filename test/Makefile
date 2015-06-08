@@ -16,9 +16,9 @@ obj/TileMathTest.o
 
 DEPS=RialtoTest.hpp
 
-all: obj/tester
+all: obj/rialto_test
 
-obj/tester: $(OBJS)
+obj/rialto_test: $(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS) -lrialto -lpdalcpp -lpdal_util -lsqlite3 -lgtest -llaszip -lpthread
 
 obj/%.o: %.cpp

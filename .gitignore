@@ -1,7 +1,7 @@
 *.o
 *.a
-test/obj/tester
-tool/obj/tool
+test/obj/rialto_test
+tool/obj/rialto_tool
 
 vendor/gtest-1.7.0/CMakeFiles
 vendor/gtest-1.7.0/cmake_install.cmake
