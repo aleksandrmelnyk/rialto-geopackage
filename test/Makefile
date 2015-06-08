@@ -19,7 +19,7 @@ DEPS=RialtoTest.hpp
 all: obj/tester
 
 obj/tester: $(OBJS)
-	$(CC) -o $@ $^ $(LDFLAGS) -lrialto -lpdalcpp -lpdal_util -lsqlite3 -lgtest -llaszip
+	$(CC) -o $@ $^ $(LDFLAGS) -lrialto -lpdalcpp -lpdal_util -lsqlite3 -lgtest -llaszip -lpthread
 
 obj/%.o: %.cpp
 	$(CC) $(CFLAGS) -c -o $@ $<
