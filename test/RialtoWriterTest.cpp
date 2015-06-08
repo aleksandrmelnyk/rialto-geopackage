@@ -32,29 +32,16 @@
 * OF SUCH DAMAGE.
 ****************************************************************************/
 
-#include <pdal/Options.hpp>
-#include <pdal/PointTable.hpp>
-#include <pdal/StageFactory.hpp>
-#include <pdal/util/Bounds.hpp>
-#include <pdal/util/FileUtils.hpp>
-
-#include <pdal/BufferReader.hpp>
-#include <pdal/LasReader.hpp>
+#include "RialtoTest.hpp"
 #include <pdal/CropFilter.hpp>
-
-#include <boost/filesystem.hpp>
-
-#include <rialto/GeoPackage.hpp>
-#include <rialto/GeoPackageCommon.hpp>
+#include <pdal/LasReader.hpp>
 #include <rialto/RialtoReader.hpp>
 #include <rialto/RialtoWriter.hpp>
 #include "../src/TileMath.hpp"
-#include "RialtoTest.hpp"
-
-#include "gtest/gtest.h"
 
 using namespace pdal;
 using namespace rialto;
+using namespace rialtotest;
 
 static bool testP2T(double x, double y, uint32_t level, uint32_t expected_col, uint32_t expected_row)
 {

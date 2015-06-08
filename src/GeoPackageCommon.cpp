@@ -40,8 +40,6 @@
 static const int MIN_LAZ_POINTS = 20; // TODO
 #endif
 
-namespace pdal
-{
 namespace rialto
 {
 
@@ -307,4 +305,3 @@ void GpkgTile::decompressPatch(size_t numPoints, PointViewPtr view,
 #endif
 
 } // namespace rialto
-} // namespace pdal

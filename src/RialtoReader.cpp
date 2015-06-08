@@ -38,8 +38,6 @@
 #include "ViewTileCommon.hpp"
 #include "TileMath.hpp"
 
-namespace pdal
-{
 
 static PluginInfo const s_info = PluginInfo(
     "readers.rialto",
@@ -237,11 +235,10 @@ void RialtoReader::doQuery(const TileMath& tmm,
 
 } // namespace rialto
 
-
+namespace pdal
+{
 void Options::remove(const std::string& name)
 {
     m_options.erase(name);
 }
-
-
-} // namespace pdal
+}

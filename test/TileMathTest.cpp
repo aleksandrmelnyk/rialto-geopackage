@@ -36,9 +36,7 @@
 
 #include "gtest/gtest.h"
 
-using namespace pdal;
 using namespace rialto;
-
 
 
 static void checkMath(const TileMath& tmm,

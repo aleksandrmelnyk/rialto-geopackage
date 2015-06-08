@@ -32,21 +32,19 @@
 * OF SUCH DAMAGE.
 ****************************************************************************/
 
-#include <pdal/pdal.hpp>
-#include <pdal/util/Bounds.hpp>
-#include <pdal/BufferReader.hpp>
+
+#include "Tool.hpp"
+
+#include <rialto/GeoPackageCommon.hpp>
+#include <rialto/RialtoReader.hpp>
+#include <rialto/RialtoWriter.hpp>
 #include <pdal/NullWriter.hpp>
 #include <pdal/FauxReader.hpp>
 #include <pdal/LasReader.hpp>
 #include <pdal/LasWriter.hpp>
-#include <rialto/GeoPackageCommon.hpp>
-#include <rialto/RialtoReader.hpp>
-#include <rialto/RialtoWriter.hpp>
-
-#include "Tool.hpp"
-
+#
 using namespace pdal;
-
+using namespace rialto;
 
 static void error(const char* p, const char* q=NULL)
 {
@@ -231,7 +229,7 @@ Stage* Tool::createReader(const char* name, FileType type, const BOX3D& rBounds,
             break;
     }
 
-    ((pdal::rialto::RialtoReader*)reader)->getMatrixSet().getName();
+    ((RialtoReader*)reader)->getMatrixSet().getName();
 
     reader->setOptions(opts);
     return reader;

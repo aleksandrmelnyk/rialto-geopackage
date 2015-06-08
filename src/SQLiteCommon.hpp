@@ -34,16 +34,8 @@
 
 #pragma once
 
-#include <pdal/pdal_error.hpp>
-#include <pdal/Options.hpp>
-#include <pdal/Log.hpp>
-
 #include <sqlite3.h>
-#include <memory>
-#include <sstream>
 
-namespace pdal
-{
 namespace rialto
 {
     
@@ -519,4 +511,3 @@ private:
 };
 
 } // namepsace rialto
-} // namespace pdal

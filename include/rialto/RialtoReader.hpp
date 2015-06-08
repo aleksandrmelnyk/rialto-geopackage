@@ -37,10 +37,10 @@
 #include <pdal/Reader.hpp>
 
 
-namespace pdal
-{
 namespace rialto
 {
+    using namespace pdal;
+
 class GpkgTile;
 class GpkgMatrixSet;
 class GeoPackageReader;
@@ -83,4 +83,3 @@ private:
 };
 
 } // rialto namespace
-} // pdal namespace

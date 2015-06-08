@@ -32,25 +32,11 @@
 * OF SUCH DAMAGE.
 ****************************************************************************/
 
-#include <pdal/Options.hpp>
-#include <pdal/PointTable.hpp>
-#include <pdal/StageFactory.hpp>
-#include <pdal/util/Bounds.hpp>
-#include <pdal/util/FileUtils.hpp>
-
-#include <pdal/BufferReader.hpp>
-
-#include <boost/filesystem.hpp>
-
-#include <rialto/GeoPackage.hpp>
-#include <rialto/GeoPackageCommon.hpp>
-
 #include "RialtoTest.hpp"
-
-#include "gtest/gtest.h"
 
 using namespace pdal;
 using namespace rialto;
+using namespace rialtotest;
 
 
 TEST(GeoPackageTest, test1)

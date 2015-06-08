@@ -32,8 +32,6 @@
 * OF SUCH DAMAGE.
 ****************************************************************************/
 
-#include <pdal/pdal.hpp>
-
 #include "Tool.hpp"
 
 // TODO: document usage

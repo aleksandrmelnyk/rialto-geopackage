@@ -36,10 +36,9 @@
 
 #include <pdal/pdal.hpp>
 
-namespace pdal
-{
 namespace rialto
 {
+using namespace pdal;
 
 class Event
 {
@@ -125,4 +124,3 @@ private:
 };
 
 } // namespace rialto
-} // namespace pdal

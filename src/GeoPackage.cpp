@@ -36,11 +36,6 @@
 
 #include <rialto/GeoPackageCommon.hpp>
 #include "SQLiteCommon.hpp"
-#include "ViewTileCommon.hpp"
-
-
-namespace pdal
-{
 
 namespace rialto
 {
@@ -434,4 +429,3 @@ void GeoPackage::dumpStats() const
 
 
 } // namespace rialto
-} // namespace pdal

@@ -34,23 +34,10 @@
 
 #include "RialtoTest.hpp"
 
-#include <cstdint>
-#include <string>
-
 #include <pdal/BufferReader.hpp>
-
-#include <rialto/GeoPackage.hpp>
-#include <rialto/GeoPackageCommon.hpp>
-#include <rialto/GeoPackageManager.hpp>
-#include <rialto/GeoPackageReader.hpp>
-#include <rialto/GeoPackageWriter.hpp>
 #include <rialto/RialtoWriter.hpp>
 
-#include "gtest/gtest.h"
-
-namespace pdal
-{
-namespace rialto
+namespace rialtotest
 {
 
 
@@ -267,5 +254,4 @@ uint32_t RialtoTest::countPointsInBounds(Data* xyz, uint32_t numPoints,
 }
 
 
-} // namespace rialto
-} // namespace pdal
+} // namespace rialtotest

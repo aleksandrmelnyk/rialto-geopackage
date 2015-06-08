@@ -34,15 +34,9 @@
 
 #pragma once
 
+#include <pdal/pdal.hpp>
 #include <pdal/pdal_types.hpp>
-#include <pdal/Writer.hpp>
 
-#include <cassert>
-#include <cstdint>
-#include <vector>
-
-namespace pdal
-{
 
 namespace rialto
 {
@@ -232,4 +226,3 @@ private:
 
 
 } // namespace rialto
-} // namespace pdal

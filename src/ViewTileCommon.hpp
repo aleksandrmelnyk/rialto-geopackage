@@ -34,18 +34,12 @@
 
 #pragma once
 
+#include <pdal/pdal.hpp>
 #include <pdal/pdal_types.hpp>
-#include <pdal/Writer.hpp>
-
-#include <cassert>
-#include <cstdint>
-#include <vector>
-
-namespace pdal
-{
 
 namespace rialto
 {
+    using namespace pdal;
 
 
 class ViewTile;
@@ -124,4 +118,3 @@ private:
 };
 
 } // namespace rialto
-} // namespace pdal

@@ -41,10 +41,10 @@ extern "C" int32_t RialtoWriter_ExitFunc();
 extern "C" PF_ExitFunc RialtoWriter_InitPlugin();
 
 
-namespace pdal
-{
 namespace rialto
 {
+    using namespace pdal;
+
     class GeoPackageWriter;
     class ViewTileSet;
 
@@ -94,4 +94,3 @@ private:
 };
 
 } // namespace rialto
-} // namespace pdal

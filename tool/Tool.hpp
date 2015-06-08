@@ -33,9 +33,6 @@
 ****************************************************************************/
 
 #include <pdal/pdal.hpp>
-#include <pdal/Reader.hpp>
-#include <pdal/Filter.hpp>
-#include <pdal/Writer.hpp>
 
 using namespace pdal;
 

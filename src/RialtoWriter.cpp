@@ -38,9 +38,6 @@
 #include "ViewTileCommon.hpp"
 
 
-namespace pdal
-{
-
 static PluginInfo const s_info = PluginInfo(
     "writers.rialto",
     "Rialto Writer",
@@ -245,4 +242,3 @@ void RialtoWriter::updateDimensionStats(PointLayoutPtr layout)
 
 
 } // namespace rialto
-} // namespace pdal

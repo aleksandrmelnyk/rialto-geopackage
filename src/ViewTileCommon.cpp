@@ -35,15 +35,6 @@
 #include "ViewTileCommon.hpp"
 #include "TileMath.hpp"
 
-#include <pdal/Log.hpp>
-#include <pdal/pdal_types.hpp>
-#include <pdal/PointView.hpp>
-#include <pdal/util/FileUtils.hpp>
-
-#include <cmath>
-
-namespace pdal
-{
 namespace rialto
 {
 
@@ -289,5 +280,3 @@ void ViewTile::add(PointViewPtr sourcePointView, PointId pointNumber, double x, 
 }
 
 } // namespace rialto
-
-} // namespace pdal

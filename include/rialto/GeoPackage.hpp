@@ -42,6 +42,7 @@
 namespace pdal
 {
     class Log;
+}
 
 namespace rialto
 {
@@ -109,5 +110,3 @@ private:
 
 
 } // namespace rialto
-
-} // namespace pdal

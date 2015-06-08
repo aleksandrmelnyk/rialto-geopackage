@@ -39,9 +39,6 @@
 #include "ViewTileCommon.hpp"
 #include "TileMath.hpp"
 
-namespace pdal
-{
-
 namespace rialto
 {
 
@@ -422,4 +419,3 @@ void GeoPackageWriter::childDumpStats() const
 
 
 } // namespace rialto
-} // namespace pdal

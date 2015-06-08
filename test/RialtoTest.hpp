@@ -34,25 +34,17 @@
 
 #pragma once
 
-#include <pdal/pdal_export.hpp>
-
-#include <cstdint>
-#include <string>
-
-#include <pdal/BufferReader.hpp>
-
-#include <rialto/GeoPackage.hpp>
+#include <pdal/pdal.hpp>
 #include <rialto/GeoPackageCommon.hpp>
 #include <rialto/GeoPackageManager.hpp>
 #include <rialto/GeoPackageReader.hpp>
 #include <rialto/GeoPackageWriter.hpp>
-
 #include "gtest/gtest.h"
 
-namespace pdal
+namespace rialtotest
 {
-namespace rialto
-{
+    using namespace pdal;
+    using namespace rialto;
 
 
 class Support
@@ -106,5 +98,4 @@ public:
 };
 
 
-} // namespace rialto
-} // namespace pdal
+} // namespace rialtotest

@@ -34,13 +34,9 @@
 
 #include <rialto/GeoPackageManager.hpp>
 
-#include <rialto/GeoPackageCommon.hpp>
 #include "SQLiteCommon.hpp"
-#include "ViewTileCommon.hpp"
 
 
-namespace pdal
-{
 
 namespace rialto
 {
@@ -372,4 +368,3 @@ void GeoPackageManager::dropMatrixSet(const std::string& matrixSetName)
 }
 
 } // namespace rialto
-} // namespace pdal

@@ -36,10 +36,9 @@
 
 #include <pdal/pdal.hpp>
 
-namespace pdal
-{
 namespace rialto
 {
+    using namespace pdal;
 
 
 class GpkgDimension
@@ -199,4 +198,3 @@ private:
 
 
 } // namespace rialto
-} // namespace pdal
