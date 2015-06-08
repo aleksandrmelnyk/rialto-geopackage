@@ -351,15 +351,14 @@ void GeoPackageManager::dropMatrixSet(const std::string& matrixSetName)
 {
     // drops the matrix set table and all referencesto it  in the gpkg tables
     
-    const std::vector<const std::string> tables {
-        "gpkg_contents",
-        "gpkg_pctile_dimension_set",
-        "gpkg_pctile_matrix",
-        "gpkg_pctile_matrix_set",
-        "gpkg_metadata_reference",
-        "gpkg_extensions"
-    };
-    
+    std::vector<std::string> tables;
+    tables.push_back("gpkg_contents");
+    tables.push_back("gpkg_pctile_dimension_set");
+    tables.push_back("gpkg_pctile_matrix");
+    tables.push_back("gpkg_pctile_matrix_set");
+    tables.push_back("gpkg_metadata_reference");
+    tables.push_back("gpkg_extensions");
+        
     for (auto table: tables) 
     {
         std::ostringstream oss2;
