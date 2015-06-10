@@ -34,7 +34,9 @@
 
 #include <rialto/GeoPackageManager.hpp>
 
+#include <rialto/GeoPackageCommon.hpp>
 #include "SQLiteCommon.hpp"
+#include "ViewTileCommon.hpp"
 
 
 
@@ -347,14 +349,14 @@ void GeoPackageManager::dropMatrixSet(const std::string& matrixSetName)
 {
     // drops the matrix set table and all referencesto it  in the gpkg tables
     
-    std::vector<std::string> tables;
-    tables.push_back("gpkg_contents");
-    tables.push_back("gpkg_pctile_dimension_set");
-    tables.push_back("gpkg_pctile_matrix");
-    tables.push_back("gpkg_pctile_matrix_set");
-    tables.push_back("gpkg_metadata_reference");
-    tables.push_back("gpkg_extensions");
-        
+   std::vector<std::string> tables;
+   tables.push_back("gpkg_contents");
+   tables.push_back("gpkg_pctile_dimension_set");
+   tables.push_back("gpkg_pctile_matrix");
+   tables.push_back("gpkg_pctile_matrix_set");
+   tables.push_back("gpkg_metadata_reference");
+   tables.push_back("gpkg_extensions");
+
     for (auto table: tables) 
     {
         std::ostringstream oss2;

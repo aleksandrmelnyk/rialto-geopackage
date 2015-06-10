@@ -1,13 +1,12 @@
 include ../defs.mk
 
-CFLAGS=	-g -std=c++11 \
+CFLAGS=	-g -std=c++11 -fPIC \
 -I../include \
--I$(PDAL_HOME)/include \
+-I$(INSTALL_DIR)/include \
 -I../vendor/gtest-1.7.0/include
 
-LDFLAGS=-L$(PDAL_HOME)/lib \
--L../vendor/gtest-1.7.0 \
--L../src/obj
+LDFLAGS=-Wl,-rpath,$(INSTALL_DIR)/lib -L$(INSTALL_DIR)/lib \
+-L../vendor/gtest-1.7.0
 
 CC=c++
 
@@ -19,7 +18,7 @@ DEPS=RialtoTest.hpp
 all: obj/rialto_test
 
 obj/rialto_test: $(OBJS)
-	$(CC) -o $@ $^ $(LDFLAGS) -lrialto -lpdalcpp -lpdal_util -lsqlite3 -lgtest -llaszip -lpthread
+	$(CC) -o $@ $^ $(LDFLAGS) -lpdalcpp -lpdal_util -lsqlite3 -lgtest -llaszip -lrialto -lpthread
 
 obj/%.o: %.cpp
 	@mkdir -p ./obj
@@ -27,5 +26,10 @@ obj/%.o: %.cpp
 
 $(OBJS): $(DEPS)
 
+install: obj/tester
+	echo "Nothing to install in test"
+
+test: 
+	obj/tester
 clean:
 	rm -f obj/*

@@ -3,10 +3,9 @@ include ../defs.mk
 
 CFLAGS=	-g -std=c++11 \
 -I../include \
--I$(PDAL_HOME)/include
+-I$(INSTALL_DIR)/include
 
-LDFLAGS=-L$(PDAL_HOME)/lib \
--L../src/obj
+LDFLAGS=-Wl,-rpath,$(INSTALL_DIR)/lib -L$(INSTALL_DIR)/lib
 
 CC=c++
 
@@ -24,6 +23,10 @@ obj/%.o: %.cpp
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(OBJS): $(DEPS)
+
+install: obj/tool
+	$(MAKE) all
+	cp $< $(INSTALL_DIR)/bin
 
 clean:
 	rm -f obj/*
