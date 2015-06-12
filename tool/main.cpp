@@ -46,9 +46,12 @@ int main(int argc, char* argv[])
     tool.processOptions(argc, argv);
 
     pdal::Stage* reader = tool.createReader();
+    pdal::Stage* filter = tool.createReprojector();
     pdal::Stage* writer = tool.createWriter();
+    
+    filter->setInput(*reader);
 
-    writer->setInput(*reader);
+    writer->setInput(*filter);
 
     pdal::PointTable table;
     writer->prepare(table);

@@ -56,6 +56,7 @@ public:
     void processOptions(int argc, char* argv[]);
 
     Stage* createReader();
+    Stage* createReprojector();
     Stage* createWriter();
 
     void verify();

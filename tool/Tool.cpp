@@ -36,12 +36,14 @@
 #include "Tool.hpp"
 
 #include <rialto/GeoPackageCommon.hpp>
+#include <rialto/GeoPackageManager.hpp>
 #include <rialto/RialtoReader.hpp>
 #include <rialto/RialtoWriter.hpp>
 #include <pdal/NullWriter.hpp>
 #include <pdal/FauxReader.hpp>
 #include <pdal/LasReader.hpp>
 #include <pdal/LasWriter.hpp>
+#include <pdal/ReprojectionFilter.hpp>
 #
 using namespace pdal;
 using namespace rialto;
@@ -166,6 +168,7 @@ void Tool::processOptions(int argc, char* argv[])
         case TypeNull:
         case TypeLas:
         case TypeLaz:
+        case TypeRialto:
             // ok
             break;
         case TypeRandom:
@@ -190,6 +193,22 @@ void Tool::processOptions(int argc, char* argv[])
 Stage* Tool::createReader()
 {
     return createReader(m_inputName, m_inputType, m_rBounds, m_rCount);
+}
+
+
+Stage* Tool::createReprojector()
+{
+    Stage* filter = new ReprojectionFilter();
+    
+    const SpatialReference srs("EPSG:4326");
+    Option opt("out_srs", srs.getWKT());
+    
+    Options options;
+    options.add(opt);
+
+    filter->setOptions(options);
+
+    return filter;
 }
 
 
@@ -229,7 +248,7 @@ Stage* Tool::createReader(const char* name, FileType type, const BOX3D& rBounds,
             break;
     }
 
-    ((RialtoReader*)reader)->getMatrixSet().getName();
+    //((RialtoReader*)reader)->getMatrixSet().getName();
 
     reader->setOptions(opts);
     return reader;
@@ -259,8 +278,27 @@ Stage* Tool::createWriter(const char* name, FileType type)
             opts.add("compressed", true);
             break;
         case TypeRialto:
+            {
+                LogPtr log(new Log("rialtowritertest", "stdout"));
+                GeoPackageManager db(name, log);
+                db.open();
+                db.close();
+            }
             opts.add("filename", name);
+            opts.add("name", "mytablename");
+            opts.add("numColsAtL0", 2);
+            opts.add("numRowsAtL0", 1);
+            opts.add("timestamp", "mytimestamp");
+            opts.add("description", "mydescription");
+            opts.add("maxLevel", 2);
+            opts.add("tms_minx", -180.0);
+            opts.add("tms_miny", -90.0);
+            opts.add("tms_maxx", 180.0);
+            opts.add("tms_maxy", 90.0);
             writer = new rialto::RialtoWriter();
+            
+            
+
             break;
         default:
             assert(0);
