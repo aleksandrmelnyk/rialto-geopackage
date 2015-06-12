@@ -34,6 +34,7 @@
 
 #include "ViewTileCommon.hpp"
 #include "TileMath.hpp"
+#include <rialto/Event.hpp>
 
 namespace rialto
 {
@@ -95,6 +96,8 @@ void ViewTileSet::build(PointViewPtr sourceView, PointViewSet* outputSet)
     const uint32_t numCols = m_tmm->numColsAtLevel(0);
     const uint32_t numRows = m_tmm->numRowsAtLevel(0);
 
+    Heartbeat hb(0);
+    
     const uint32_t numPoints = sourceView->size();
     for (PointId idx = 0; idx < numPoints; ++idx)
     {
@@ -124,6 +127,8 @@ void ViewTileSet::build(PointViewPtr sourceView, PointViewSet* outputSet)
             }
         }
         assert(added);
+        
+        hb.beat(idx, numPoints);
     }
 
     for (uint32_t c=0; c<numCols; c++)

@@ -123,4 +123,43 @@ private:
      mutable clock_t m_start;
 };
 
+
+class Heartbeat
+{
+public:
+    Heartbeat(int offset, bool disabled=false) :
+        m_dotsPrinted(0),
+        m_offset(offset),
+        m_disabled(disabled)
+    {}
+    
+    ~Heartbeat()
+    {
+        if (m_disabled) return;
+        printf("\n");
+    }
+    
+    void beat(double a, double b)
+    {
+        if (m_disabled) return;
+
+        const int dotsWanted = ((a/b) * 100.0) / 2;
+        while (m_dotsPrinted <= dotsWanted)
+        {
+            printf(".");
+            if ((m_dotsPrinted % 5) == 0) {
+                printf("%d", m_dotsPrinted + m_offset);
+            }
+            ++m_dotsPrinted;
+        }
+        fflush(stdout);
+    }
+
+private:
+    int m_dotsPrinted;
+    const int m_offset;
+    const bool m_disabled;
+};
+
+
 } // namespace rialto
