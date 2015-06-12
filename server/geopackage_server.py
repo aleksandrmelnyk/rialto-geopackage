@@ -85,7 +85,7 @@ def openDatabase(dbname):
     try:
         currentConn = sqlite3.connect(fullname)
         currentName = fullname
-        print("*** opened %s" % currentName)
+        #print("*** opened %s" % currentName)
     except sqlite.Error, e:        
         print "Error %s:" % e.args[0]
         if currentConn:
@@ -203,7 +203,7 @@ def getBlob(dbname, table, level, x, y):
     mask = None
     numPoints = None
     
-    print("Blob query: %s,%s,%s" % (level, x, y))
+    #print("Blob query: %s,%s,%s" % (level, x, y))
     
     try:
         con = openDatabase(dbname)
@@ -229,7 +229,7 @@ def getBlob(dbname, table, level, x, y):
     
     if resp == None: return None
     
-    print("done: %s,%s,%s" % (len(resp), numPoints, mask))
+    #print("done: %s,%s,%s" % (len(resp), numPoints, mask))
     return (resp, numPoints, mask)
     
 
@@ -249,7 +249,7 @@ def do_GET_databases(s, dbpath):
     if (files == None):
         send404(s, "database query failed")
         return
-    s.wfile.write(json.dumps(files))
+    s.wfile.write(json.dumps(files, sort_keys=True, indent=4))
     return
 
 
@@ -267,7 +267,7 @@ def do_GET_tables(s, dbname):
     s.send_header("Content-type", "application/json")
     s.send_header("Access-Control-Allow-Origin", "*")
     s.end_headers()
-    s.wfile.write(json.dumps(tables))
+    s.wfile.write(json.dumps(tables, sort_keys=True, indent=4))
     return
     
 
@@ -286,7 +286,7 @@ def do_GET_info(s, dbname, tablename):
     s.send_header("Content-type", "application/json")
     s.send_header("Access-Control-Allow-Origin", "*")
     s.end_headers()
-    s.wfile.write(json.dumps(info))
+    s.wfile.write(json.dumps(info, sort_keys=True, indent=4))
     return
 
 
@@ -357,7 +357,6 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
 if __name__ == '__main__':
 
-    print currentName
     if len(sys.argv) != 4:
         print "Usage: $ server.py hostname portnumber rootdir"
         exit(1)

@@ -290,7 +290,7 @@ Stage* Tool::createWriter(const char* name, FileType type)
             opts.add("numRowsAtL0", 1);
             opts.add("timestamp", "mytimestamp");
             opts.add("description", "mydescription");
-            opts.add("maxLevel", 2);
+            opts.add("maxLevel", 16);
             opts.add("tms_minx", -180.0);
             opts.add("tms_miny", -90.0);
             opts.add("tms_maxx", 180.0);
