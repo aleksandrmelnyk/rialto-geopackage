@@ -73,12 +73,12 @@ private:
     FileType m_outputType;
 
     bool m_haveVerify;
+    uint32_t m_maxLevel;
     BOX3D m_rBounds;
     BOX3D m_qBounds;
     bool m_haveQuery;
     bool m_haveRandom;
-
-    uint32_t m_maxLevel; // TODO
+    bool m_haveReproject;
 
     // TODO: for now, we only query at maxLevel
 

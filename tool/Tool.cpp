@@ -71,12 +71,14 @@ Tool::Tool() :
     m_outputName(NULL),
     m_inputType(TypeInvalid),
     m_outputType(TypeInvalid),
+    m_haveVerify(false),
     m_maxLevel(15),
     m_rBounds(BOX3D(-189.9, -89.9, 189.9, 89.9, -999999.0, 999999.0)),
     m_qBounds(BOX3D(-189.9, -89.9, 189.9, 89.9, -999999.0, 999999.0)),
     m_haveQuery(false),
     m_haveRandom(false),
-    m_rCount(1000)
+    m_rCount(1000),
+    m_haveReproject(false)
 {
     Utils::random_seed(17);
 }
@@ -106,7 +108,16 @@ void Tool::processOptions(int argc, char* argv[])
 
     while (i < argc)
     {
-        if (streq(argv[i], "-i"))
+        if (streq(argv[i], "-h"))
+        {
+            printf("Usage: $ rialto_tool -i a.las -o a.gpkg\n");
+            printf("   optional: -q minx miny maxx maxy  # query bounds\n");
+            printf("   optional: -r minx miny maxx maxy  # random limits\n");
+            printf("   optional: -p  # reproject to 4326\n");
+            printf("   optional: -v  # verify\n");
+            error("exiting");
+        }
+        else if (streq(argv[i], "-i"))
         {
             m_inputName = argv[++i];
         }
@@ -130,6 +141,14 @@ void Tool::processOptions(int argc, char* argv[])
             m_rBounds.maxy = atof(argv[++i]);
             m_rCount = atoi(argv[i++]);
             m_haveRandom = true;
+        }
+        else if (streq(argv[i], "-p"))
+        {
+            m_haveReproject = true;
+        }
+        else if (streq(argv[i], "-m"))
+        {
+            m_maxLevel = atoi(argv[++i]);
         }
         else if (streq(argv[i], "-v"))
         {
@@ -198,6 +217,8 @@ Stage* Tool::createReader()
 
 Stage* Tool::createReprojector()
 {
+    if (!m_haveReproject) return NULL;
+
     Stage* filter = new ReprojectionFilter();
     
     const SpatialReference srs("EPSG:4326");

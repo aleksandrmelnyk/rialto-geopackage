@@ -49,9 +49,15 @@ int main(int argc, char* argv[])
     pdal::Stage* filter = tool.createReprojector();
     pdal::Stage* writer = tool.createWriter();
     
-    filter->setInput(*reader);
-
-    writer->setInput(*filter);
+    if (filter)
+    {
+        filter->setInput(*reader);
+        writer->setInput(*filter);
+    }
+    else
+    {
+        writer->setInput(*reader);        
+    }
 
     pdal::PointTable table;
     writer->prepare(table);
@@ -60,6 +66,7 @@ int main(int argc, char* argv[])
     tool.verify();
 
     delete writer;
+    delete filter;
     delete reader;
 
     return 0;
