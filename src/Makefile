@@ -1,6 +1,6 @@
 include ../defs.mk
 
-CFLAGS=	-g -std=c++11 -fPIC \
+CFLAGS=	-g -std=c++11 -fPIC -O3 \
 -I ../include \
 -I $(INSTALL_DIR)/include
 
@@ -27,7 +27,7 @@ DEPS=\
 all: obj/librialto.so
 
 obj/librialto.so: $(OBJS)
-	gcc $(LDFLAGS) -o $@ $^
+	$(CC) $(LDFLAGS) -o $@ $^ -lsqlite3 -lpdalcpp -lpdal_util
 
 obj/%.o: %.cpp
 	@mkdir -p ./obj

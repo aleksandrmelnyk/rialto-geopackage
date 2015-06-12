@@ -1,1 +1,2 @@
 INSTALL_DIR=$(OSSIM_DEPENDENCIES)
+INSTALL_DIR=$(HOME)/work/dev/install/pdal

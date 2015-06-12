@@ -1,6 +1,6 @@
 include ../defs.mk
 
-CFLAGS=	-g -std=c++11 -fPIC \
+CFLAGS=	-g -std=c++11 -fPIC -O3 \
 -I../include \
 -I$(INSTALL_DIR)/include \
 -I../vendor/gtest-1.7.0/include

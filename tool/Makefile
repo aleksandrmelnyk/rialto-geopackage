@@ -1,7 +1,7 @@
 include ../defs.mk
 
 
-CFLAGS=	-g -std=c++11 \
+CFLAGS=	-g -std=c++11 -O3 \
 -I../include \
 -I$(INSTALL_DIR)/include
 
