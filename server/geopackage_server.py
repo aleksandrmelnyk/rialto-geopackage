@@ -292,9 +292,9 @@ def do_GET_info(s, dbname, tablename):
 
 def do_GET_blob(s, dbname, tablename, level, col, row):
 
-    if not databaseExists(dbname):
-        send404(s, "database not found")
-        return
+    #if not databaseExists(dbname):
+    #    send404(s, "database not found")
+    #    return
 
     t = getBlob(dbname, tablename, level, col, row)
     if (t == None):
