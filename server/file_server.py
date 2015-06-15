@@ -47,7 +47,17 @@ import json
 
 from os import sep
 
-
+mimemap = {
+    ".css": 'text/css',
+    ".dart": 'application/dart',
+    ".html": 'text/html',
+    ".js": 'application/js',
+    ".json": 'application/json',
+    ".woff": 'application/font-woff',
+    ".woff2": 'application/font-woff',
+    ".yaml": 'text/plain'
+    }
+    
 def send404(s, mssg=None):
     s.send_response(404)
     s.send_header("Content-type", "text/html")
@@ -68,30 +78,11 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             send404(s, "not found: %s" % s.path)
             return
 
-        if s.path.endswith(".html"):
+        (root,ext) = os.path.splitext(s.path)
+        if ext in mimemap:
             f = open(fullname)
             s.send_response(200)
-            s.send_header('Content-type', 'text/html')
-            s.send_header("Access-Control-Allow-Origin", "*")
-            s.end_headers()
-            s.wfile.write(f.read())
-            f.close()
-            return
- 
-        if s.path.endswith(".yaml"):
-            f = open(fullname)
-            s.send_response(200)
-            s.send_header('Content-type', 'text/plain')
-            s.send_header("Access-Control-Allow-Origin", "*")
-            s.end_headers()
-            s.wfile.write(f.read())
-            f.close()
-            return
-
-        if s.path.endswith(".json"):
-            f = open(fullname)
-            s.send_response(200)
-            s.send_header('Content-type', 'application/json')
+            s.send_header('Content-type', mimemap[ext])
             s.send_header("Access-Control-Allow-Origin", "*")
             s.end_headers()
             s.wfile.write(f.read())
