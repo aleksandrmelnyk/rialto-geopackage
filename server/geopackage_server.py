@@ -33,6 +33,7 @@
 # OF SUCH DAMAGE.
 #***************************************************************************/
 
+
 #
 # GET /             - returns JSON of all the databases available
 # GET /file         - returns JSON of all the tables in the GeoPkg database named "file.gpkg"
@@ -40,27 +41,22 @@
 # GET /file/tab/L/X/Y   - returns the tile at level L, column X, row Y (as binary data)
 #
 
-import sys
-import time
+
 from BaseHTTPServer import HTTPServer
-import SimpleHTTPServer
-import sqlite3
-import os.path
 import glob
 import json
+import os.path
 from os import sep
-from struct import pack
-from SocketServer import ThreadingMixIn
 import Queue
-import threading, socket
+import SimpleHTTPServer
 from SimpleHTTPServer import SimpleHTTPRequestHandler
-from SocketServer import TCPServer
+from SocketServer import ThreadingMixIn
+import sqlite3
+from struct import pack
+import sys
+import threading, socket
+import time    
     
-    
-# we always keep the last connection open
-
-currentConnection = {}
-currentConnectionName = {}
 
 def simpleName(s):
     ss = os.path.basename(s)
@@ -68,206 +64,214 @@ def simpleName(s):
     return sss
 
 
-def getDatabases(dbpath):
-    fullnames = glob.glob(dbpath + sep + "*" + ".gpkg")
-
-    # return just the basename of the file
-    l = [simpleName(i) for i in fullnames]
-    return l
-
 def databaseExists(dbname):
     return os.path.isfile(dbname + ".gpkg")
-
-
-def openDatabase(dbname):
-    
-    fullname = dbname + ".gpkg"
-    if currentConnectionName[threading.current_thread().name] == fullname and currentConnection[threading.current_thread().name] != None:
-        return currentConnection[threading.current_thread().name]
-
-    try:
-        currentConnection[threading.current_thread().name] = sqlite3.connect(fullname)
-        currentConnectionName[threading.current_thread().name] = fullname
-        #print("*** opened %s" % currentName)
-    except sqlite.Error, e:        
-        print "Error %s:" % e.args[0]
-        if currentConnection[threading.current_thread().name]:
-            currentConnection[threading.current_thread().name].close()
-            currentConnection[threading.current_thread().name] = None
-            currentConnectionName[threading.current_thread().name] = ""
-        return None
-        
-    return currentConnection[threading.current_thread().name]
-
-
-def closeDatabase():
-    
-    if currentConnection[threading.current_thread().name]:
-        currentConnection[threading.current_thread().name].close()
-    currentConnection[threading.current_thread().name] = None
-
-
-def listTables(dbname):
-    con = None
-    resp = list()
-    
-    try:
-        con = openDatabase(dbname)
-        
-        cur = con.cursor()    
-        cur.execute('SELECT table_name from gpkg_contents')
-        while True:
-            row = cur.fetchone()
-            if row == None:
-                break
-            resp.append(row[0])
-        
-    except sqlite3.Error, e:
-        
-        print "Error %s:" % e.args[0]
-        closeDatabase()
-        return None
-    
-    return resp
-
-
-def getInfo(dbname, tablename):
-    con = None
-    resp = dict()
-    
-    try:
-        con = openDatabase(dbname)
-        
-        resp["database"] = simpleName(dbname)
-        resp["table"] = tablename
-        resp["version"] = 4
-
-        cur = con.cursor()
-        cur.execute("SELECT min_x,min_y,max_x,max_y,description,last_change,srs_id FROM gpkg_contents WHERE data_type='pctiles' AND table_name='%s'" % tablename)
-        while True:
-            row = cur.fetchone()
-            if row == None:
-                break
-            resp["databbox"] = [row[0], row[1], row[2], row[3]]
-            resp["description"] = row[4]
-            resp["last_change"] = row[5]
-            resp["srs_id"] = row[6]
-        
-        cur = con.cursor()
-        cur.execute("SELECT min_x,min_y,max_x,max_y FROM gpkg_pctile_matrix_set WHERE table_name='%s'" % tablename)
-        while True:
-            row = cur.fetchone()
-            if row == None:
-                break
-            resp["tilebbox"] = [row[0], row[1], row[2], row[3]]
-        
-        cur = con.cursor()
-        cur.execute("SELECT matrix_width,matrix_height FROM gpkg_pctile_matrix WHERE table_name='%s' AND zoom_level=0" % tablename)
-        while True:
-            row = cur.fetchone()
-            if row == None:
-                break
-            resp["numTilesX"] = row[0]
-            resp["numTilesY"] = row[1]
-
-        resp["dimensions"] = list()
-        
-        cur = con.cursor()
-        cur.execute("SELECT ordinal_position,dimension_name,data_type,description,minimum,mean,maximum FROM gpkg_pctile_dimension_set WHERE table_name='%s'" % tablename)
-        while True:
-            row = cur.fetchone()
-            if row == None:
-                break
-            dims = dict()
-            dims["ordinal_position"] = row[0]
-            dims["name"] = row[1]
-            dims["datatype"] = row[2]
-            dims["description"] = row[3]
-            dims["min"] = row[4]
-            dims["mean"] = row[5]
-            dims["max"] = row[6]
-            resp["dimensions"].append(dims)
-
-        # TODO: metadata
-        
-    except sqlite3.Error, e:
-        
-        print "Error %s:" % e.args[0]
-        closeDatabase()
-        return None
-        
-    return resp
-
-
-def getBlob(dbname, table, level, x, y):
-
-    con = None
-    resp = None
-    mask = None
-    numPoints = None
-    
-    #print("Blob query: %s,%s,%s" % (level, x, y))
-    
-    try:
-        con = openDatabase(dbname)
-        
-        cur = con.cursor()
-        sql = "SELECT tile_data,num_points,child_mask FROM %s WHERE zoom_level=%s AND tile_column=%s AND tile_row=%s" % (table, level, x, y)    
-        cur.execute(sql)
-        
-        while True:
-            row = cur.fetchone()
-            if row == None:
-                break
-            resp = row[0]
-            numPoints = row[1]
-            mask = row[2]
-            
-    except sqlite3.Error, e:
-        
-        print "Error %s:" % e.args[0]
-        closeDatabase()
-        return None
-    
-    if resp == None: return None
-    
-    #print("done: %s,%s,%s" % (len(resp), numPoints, mask))
-    return (resp, numPoints, mask)
 
 
 ##
 ##
 ##
 class MyThread(threading.Thread):
+    currConn = None
+    currConnName = ""
+
+
     def __init__(self, *args, **kwargs):
         threading.Thread.__init__(self, *args, **kwargs)
+        print("starting thread: %s" % self.name)
+        self.currConn = None
+        self.currConnName = ""
+
+    
+    def openDatabase(self, dbname):
+        
+        fullname = dbname + ".gpkg"
+        if self.currConnName == fullname and self.currConn != None:
+            return self.currConn
+
+        if not databaseExists(dbname):
+            return None
+
+        try:
+            self.currConn = sqlite3.connect(fullname)
+            self.currConnName = fullname
+            #print("*** opened %s" % currentName)
+        except sqlite.Error, e:        
+            print "Error %s:" % e.args[0]
+            if self.currConn:
+                self.currConn.close()
+                self.currConn = None
+            self.currConnName = ""
+            return None
+            
+        return self.currConn
+
+
+    def closeDatabase(self):
+        
+        if self.currConn:
+            self.currConn.close()
+        self.currConn = None
+        self.currConnName = ""
+
+
+    def getDatabases(self, dbpath):
+        fullnames = glob.glob(dbpath + sep + "*" + ".gpkg")
+
+        # return just the basename of the file
+        l = [simpleName(i) for i in fullnames]
+        return l
+    
+    
+    def listTables(self, dbname):
+        con = None
+        resp = list()
+        
+        try:
+            con = self.openDatabase(dbname)
+            
+            cur = con.cursor()    
+            cur.execute('SELECT table_name from gpkg_contents')
+            while True:
+                row = cur.fetchone()
+                if row == None:
+                    break
+                resp.append(row[0])
+            
+        except sqlite3.Error, e:
+            
+            print "Error %s:" % e.args[0]
+            self.closeDatabase()
+            return None
+        
+        return resp
+
+
+    def getInfo(self, dbname, tablename):
+        con = None
+        resp = dict()
+        
+        try:
+            con = self.openDatabase(dbname)
+            
+            resp["database"] = simpleName(dbname)
+            resp["table"] = tablename
+            resp["version"] = 4
+
+            cur = con.cursor()
+            cur.execute("SELECT min_x,min_y,max_x,max_y,description,last_change,srs_id FROM gpkg_contents WHERE data_type='pctiles' AND table_name='%s'" % tablename)
+            while True:
+                row = cur.fetchone()
+                if row == None:
+                    break
+                resp["databbox"] = [row[0], row[1], row[2], row[3]]
+                resp["description"] = row[4]
+                resp["last_change"] = row[5]
+                resp["srs_id"] = row[6]
+            
+            cur = con.cursor()
+            cur.execute("SELECT min_x,min_y,max_x,max_y FROM gpkg_pctile_matrix_set WHERE table_name='%s'" % tablename)
+            while True:
+                row = cur.fetchone()
+                if row == None:
+                    break
+                resp["tilebbox"] = [row[0], row[1], row[2], row[3]]
+            
+            cur = con.cursor()
+            cur.execute("SELECT matrix_width,matrix_height FROM gpkg_pctile_matrix WHERE table_name='%s' AND zoom_level=0" % tablename)
+            while True:
+                row = cur.fetchone()
+                if row == None:
+                    break
+                resp["numTilesX"] = row[0]
+                resp["numTilesY"] = row[1]
+
+            resp["dimensions"] = list()
+            
+            cur = con.cursor()
+            cur.execute("SELECT ordinal_position,dimension_name,data_type,description,minimum,mean,maximum FROM gpkg_pctile_dimension_set WHERE table_name='%s'" % tablename)
+            while True:
+                row = cur.fetchone()
+                if row == None:
+                    break
+                dims = dict()
+                dims["ordinal_position"] = row[0]
+                dims["name"] = row[1]
+                dims["datatype"] = row[2]
+                dims["description"] = row[3]
+                dims["min"] = row[4]
+                dims["mean"] = row[5]
+                dims["max"] = row[6]
+                resp["dimensions"].append(dims)
+
+            # TODO: metadata
+            
+        except sqlite3.Error, e:
+            
+            print "Error %s:" % e.args[0]
+            self.closeDatabase()
+            return None
+            
+        return resp
+
+
+    def getBlob(self, dbname, table, level, x, y):
+
+        con = None
+        resp = None
+        mask = None
+        numPoints = None
+        
+        #print("Blob query: %s,%s,%s" % (level, x, y))
+        
+        try:
+            con = self.openDatabase(dbname)
+            
+            cur = con.cursor()
+            sql = "SELECT tile_data,num_points,child_mask FROM %s WHERE zoom_level=%s AND tile_column=%s AND tile_row=%s" % (table, level, x, y)    
+            cur.execute(sql)
+            
+            while True:
+                row = cur.fetchone()
+                if row == None:
+                    break
+                resp = row[0]
+                numPoints = row[1]
+                mask = row[2]
+                
+        except sqlite3.Error, e:
+            
+            print "Error %s:" % e.args[0]
+            self.closeDatabase()
+            return None
+        
+        if resp == None: return None
+        
+        #print("done: %s,%s,%s" % (len(resp), numPoints, mask))
+        return (resp, numPoints, mask)
 
 
 ##
 ##
 ##
 class ThreadPoolMixIn(ThreadingMixIn):
-    #allow_reuse_address = True
-
     numThreads = None
+
 
     def __init__(self, numThreads):
         self.numThreads = numThreads
         self.requests = Queue.Queue(self.numThreads)
         for n in range(self.numThreads):
-          t = threading.Thread(target = self.process_request_thread)
+          t = MyThread(target = self.process_request_thread)
           t.setDaemon(1)
           t.start()
-
 
     
     def serve_forever(self):
         self.requests = Queue.Queue(self.numThreads)
 
         for x in range(self.numThreads):
-            t = threading.Thread(target = self.process_request_thread)
-            currentConnection[t.name] = None
-            currentConnectionName[t.name] = ""
+            t = MyThread(target = self.process_request_thread)
             t.setDaemon(1)
             t.start()
 
@@ -275,10 +279,12 @@ class ThreadPoolMixIn(ThreadingMixIn):
             self.handle_request()
             
         self.server_close()
+
     
     def process_request_thread(self):
         while True:
             ThreadingMixIn.process_request_thread(self, *self.requests.get())
+
     
     def handle_request(self):
         try:
@@ -288,48 +294,50 @@ class ThreadPoolMixIn(ThreadingMixIn):
         if self.verify_request(request, client_address):
             self.requests.put((request, client_address))
 
-    #def process_request(self, request, client_address):
-    #    self.requests.put((request, client_address))
-  
 
-
+##
+##
+##
 class MyServer(ThreadPoolMixIn,HTTPServer):
     def __init__(self, addr, handler):
         ThreadPoolMixIn.__init__(self, 10)
         HTTPServer.__init__(self, addr, handler)
 
 
-
+##
+##
+##
 class MyHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
+
+
     def __init__(self, a, b, c):
         SimpleHTTPServer.SimpleHTTPRequestHandler.__init__(self, a, b, c)
+
     
     def send404(self, mssg=None):
         self.send_error(404, mssg)
         self.send_header("Access-Control-Allow-Origin", "*")
         self.end_headers()
-        return
 
 
     def do_GET_databases(self, dbpath):
+        me = threading.current_thread()
+        
         self.send_response(200)
         self.send_header("Content-type", "application/json")
         self.send_header("Access-Control-Allow-Origin", "*")
         self.end_headers()
-        files = getDatabases(dbpath)
+        files = me.getDatabases(dbpath)
         if (files == None):
             self.send404(request, "database query failed")
             return
         self.wfile.write(json.dumps(files, sort_keys=True, indent=4))
-        return
 
 
     def do_GET_tables(self, dbname):
-        if not databaseExists(dbname):
-            self.send404(s, "database not found")
-            return
+        me = threading.current_thread()
 
-        tables = listTables(dbname)
+        tables = me.listTables(dbname)
         if (tables == None):
             self.send404(request, "table query failed")
             return
@@ -339,16 +347,12 @@ class MyHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Origin", "*")
         self.end_headers()
         self.wfile.write(json.dumps(tables, sort_keys=True, indent=4))
-        return
         
 
     def do_GET_info(self, dbname, tablename):
+        me = threading.current_thread()
 
-        if not databaseExists(dbname):
-            self.send404(request, "database not found")
-            return
-
-        info = getInfo(dbname, tablename)
+        info = me.getInfo(dbname, tablename)
         if (info == None):
             self.send404(s, "info query failed")
             return
@@ -358,16 +362,12 @@ class MyHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Origin", "*")
         self.end_headers()
         self.wfile.write(json.dumps(info, sort_keys=True, indent=4))
-        return
 
 
     def do_GET_blob(self, dbname, tablename, level, col, row):
+        me = threading.current_thread()
 
-        #if not databaseExists(dbname):
-        #    send404(s, "database not found")
-        #    return
-
-        t = getBlob(dbname, tablename, level, col, row)
+        results = me.getBlob(dbname, tablename, level, col, row)
         if (t == None):
             # tile does not exist (and therefore has no point data)
             self.send_response(200)
@@ -377,23 +377,19 @@ class MyHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
             self.wfile.write(pack('<II', 0, 0))
             return
 
-        (blob, numPoints, mask) = t
+        (blob, numPoints, mask) = results
         self.send_response(200)
         self.send_header("Content-type", "application/octet-stream")
         self.send_header("Access-Control-Allow-Origin", "*")
         self.end_headers()
         self.wfile.write(pack('<II', numPoints, mask))
         self.wfile.write(blob)
-        print("sending on " + threading.current_thread().name)
-        return
+        print("sending blob on " + threading.current_thread().name)
+
 
     def do_GET(self):
         """Respond to a GET request."""
         
-        if (self.path == "/favicon.ico"):
-            self.send404("file not found")
-            return
-            
         parts = [i for i in self.path.split(sep) if i != '']
         
         if (len(parts) == 0):
@@ -422,7 +418,6 @@ class MyHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
             return
 
         self.send404(s, "not found: %s" % s.path)
-        return
 
 
 if __name__ == '__main__':
