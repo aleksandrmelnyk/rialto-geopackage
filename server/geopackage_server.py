@@ -42,19 +42,25 @@
 
 import sys
 import time
-import BaseHTTPServer
+from BaseHTTPServer import HTTPServer
+import SimpleHTTPServer
 import sqlite3
 import os.path
 import glob
 import json
 from os import sep
 from struct import pack
-
-
+from SocketServer import ThreadingMixIn
+import Queue
+import threading, socket
+from SimpleHTTPServer import SimpleHTTPRequestHandler
+from SocketServer import TCPServer
+    
+    
 # we always keep the last connection open
-currentConn = None
-currentName = ""
 
+currentConnection = {}
+currentConnectionName = {}
 
 def simpleName(s):
     ss = os.path.basename(s)
@@ -69,37 +75,39 @@ def getDatabases(dbpath):
     l = [simpleName(i) for i in fullnames]
     return l
 
-
 def databaseExists(dbname):
     return os.path.isfile(dbname + ".gpkg")
 
 
 def openDatabase(dbname):
-    global currentName
-    global currentConn
     
     fullname = dbname + ".gpkg"
-    if currentName == fullname and currentConn != None:
-        return currentConn
+    if currentConnectionName[threading.current_thread().name] == fullname and currentConnection[threading.current_thread().name] != None:
+        return currentConnection[threading.current_thread().name]
 
     try:
-        currentConn = sqlite3.connect(fullname)
-        currentName = fullname
+        currentConnection[threading.current_thread().name] = sqlite3.connect(fullname)
+        currentConnectionName[threading.current_thread().name] = fullname
         #print("*** opened %s" % currentName)
     except sqlite.Error, e:        
         print "Error %s:" % e.args[0]
-        if currentConn:
-            currentConn.close()
-            currentConn = None
-            currentName = ""
+        if currentConnection[threading.current_thread().name]:
+            currentConnection[threading.current_thread().name].close()
+            currentConnection[threading.current_thread().name] = None
+            currentConnectionName[threading.current_thread().name] = ""
         return None
         
-    return currentConn
+    return currentConnection[threading.current_thread().name]
+
+
+def closeDatabase():
+    
+    if currentConnection[threading.current_thread().name]:
+        currentConnection[threading.current_thread().name].close()
+    currentConnection[threading.current_thread().name] = None
 
 
 def listTables(dbname):
-    global currentConn
-
     con = None
     resp = list()
     
@@ -117,16 +125,13 @@ def listTables(dbname):
     except sqlite3.Error, e:
         
         print "Error %s:" % e.args[0]
-        if con: con.close()
-        currentConn = None
+        closeDatabase()
         return None
     
     return resp
 
 
 def getInfo(dbname, tablename):
-    global currentConn
-
     con = None
     resp = dict()
     
@@ -188,15 +193,13 @@ def getInfo(dbname, tablename):
     except sqlite3.Error, e:
         
         print "Error %s:" % e.args[0]
-        if con: con.close()
-        currentConn = None
+        closeDatabase()
         return None
         
     return resp
 
 
 def getBlob(dbname, table, level, x, y):
-    global currentConn
 
     con = None
     resp = None
@@ -223,123 +226,190 @@ def getBlob(dbname, table, level, x, y):
     except sqlite3.Error, e:
         
         print "Error %s:" % e.args[0]
-        if con: con.close()
-        currentConn = None
+        closeDatabase()
         return None
     
     if resp == None: return None
     
     #print("done: %s,%s,%s" % (len(resp), numPoints, mask))
     return (resp, numPoints, mask)
+
+
+##
+##
+##
+class MyThread(threading.Thread):
+    def __init__(self, *args, **kwargs):
+        threading.Thread.__init__(self, *args, **kwargs)
+
+
+##
+##
+##
+class ThreadPoolMixIn(ThreadingMixIn):
+    #allow_reuse_address = True
+
+    numThreads = None
+
+    def __init__(self, numThreads):
+        self.numThreads = numThreads
+        self.requests = Queue.Queue(self.numThreads)
+        for n in range(self.numThreads):
+          t = threading.Thread(target = self.process_request_thread)
+          t.setDaemon(1)
+          t.start()
+
+
     
+    def serve_forever(self):
+        self.requests = Queue.Queue(self.numThreads)
 
-def send404(s, mssg=None):
-    s.send_error(404, mssg)
-    s.send_header("Access-Control-Allow-Origin", "*")
-    s.end_headers()
-    return
+        for x in range(self.numThreads):
+            t = threading.Thread(target = self.process_request_thread)
+            currentConnection[t.name] = None
+            currentConnectionName[t.name] = ""
+            t.setDaemon(1)
+            t.start()
 
-
-def do_GET_databases(s, dbpath):
-    s.send_response(200)
-    s.send_header("Content-type", "application/json")
-    s.send_header("Access-Control-Allow-Origin", "*")
-    s.end_headers()
-    files = getDatabases(dbpath)
-    if (files == None):
-        send404(s, "database query failed")
-        return
-    s.wfile.write(json.dumps(files, sort_keys=True, indent=4))
-    return
-
-
-def do_GET_tables(s, dbname):
-    if not databaseExists(dbname):
-        send404(s, "database not found")
-        return
-
-    tables = listTables(dbname)
-    if (tables == None):
-        send404(s, "table query failed")
-        return
-
-    s.send_response(200)
-    s.send_header("Content-type", "application/json")
-    s.send_header("Access-Control-Allow-Origin", "*")
-    s.end_headers()
-    s.wfile.write(json.dumps(tables, sort_keys=True, indent=4))
-    return
+        while True:
+            self.handle_request()
+            
+        self.server_close()
     
+    def process_request_thread(self):
+        while True:
+            ThreadingMixIn.process_request_thread(self, *self.requests.get())
+    
+    def handle_request(self):
+        try:
+            request, client_address = self.get_request()
+        except socket.error:
+            return
+        if self.verify_request(request, client_address):
+            self.requests.put((request, client_address))
 
-def do_GET_info(s, dbname, tablename):
+    #def process_request(self, request, client_address):
+    #    self.requests.put((request, client_address))
+  
 
-    if not databaseExists(dbname):
-        send404(s, "database not found")
+
+class MyServer(ThreadPoolMixIn,HTTPServer):
+    def __init__(self, addr, handler):
+        ThreadPoolMixIn.__init__(self, 10)
+        HTTPServer.__init__(self, addr, handler)
+
+
+
+class MyHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
+    def __init__(self, a, b, c):
+        SimpleHTTPServer.SimpleHTTPRequestHandler.__init__(self, a, b, c)
+    
+    def send404(self, mssg=None):
+        self.send_error(404, mssg)
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.end_headers()
         return
 
-    info = getInfo(dbname, tablename)
-    if (info == None):
-        send404(s, "info query failed")
+
+    def do_GET_databases(self, dbpath):
+        self.send_response(200)
+        self.send_header("Content-type", "application/json")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.end_headers()
+        files = getDatabases(dbpath)
+        if (files == None):
+            self.send404(request, "database query failed")
+            return
+        self.wfile.write(json.dumps(files, sort_keys=True, indent=4))
         return
 
-    s.send_response(200)
-    s.send_header("Content-type", "application/json")
-    s.send_header("Access-Control-Allow-Origin", "*")
-    s.end_headers()
-    s.wfile.write(json.dumps(info, sort_keys=True, indent=4))
-    return
 
+    def do_GET_tables(self, dbname):
+        if not databaseExists(dbname):
+            self.send404(s, "database not found")
+            return
 
-def do_GET_blob(s, dbname, tablename, level, col, row):
+        tables = listTables(dbname)
+        if (tables == None):
+            self.send404(request, "table query failed")
+            return
 
-    #if not databaseExists(dbname):
-    #    send404(s, "database not found")
-    #    return
+        self.send_response(200)
+        self.send_header("Content-type", "application/json")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.end_headers()
+        self.wfile.write(json.dumps(tables, sort_keys=True, indent=4))
+        return
+        
 
-    t = getBlob(dbname, tablename, level, col, row)
-    if (t == None):
-        # tile does not exist (and therefore has no point data)
-        s.send_response(200)
-        s.send_header("Content-type", "application/octet-stream")
-        s.send_header("Access-Control-Allow-Origin", "*")
-        s.end_headers()
-        s.wfile.write(pack('<II', 0, 0))
+    def do_GET_info(self, dbname, tablename):
+
+        if not databaseExists(dbname):
+            self.send404(request, "database not found")
+            return
+
+        info = getInfo(dbname, tablename)
+        if (info == None):
+            self.send404(s, "info query failed")
+            return
+
+        self.send_response(200)
+        self.send_header("Content-type", "application/json")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.end_headers()
+        self.wfile.write(json.dumps(info, sort_keys=True, indent=4))
         return
 
-    (blob, numPoints, mask) = t
-    s.send_response(200)
-    s.send_header("Content-type", "application/octet-stream")
-    s.send_header("Access-Control-Allow-Origin", "*")
-    s.end_headers()
-    s.wfile.write(pack('<II', numPoints, mask))
-    s.wfile.write(blob)
-    return
 
+    def do_GET_blob(self, dbname, tablename, level, col, row):
 
-class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
-    def do_GET(s):
+        #if not databaseExists(dbname):
+        #    send404(s, "database not found")
+        #    return
+
+        t = getBlob(dbname, tablename, level, col, row)
+        if (t == None):
+            # tile does not exist (and therefore has no point data)
+            self.send_response(200)
+            self.send_header("Content-type", "application/octet-stream")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(pack('<II', 0, 0))
+            return
+
+        (blob, numPoints, mask) = t
+        self.send_response(200)
+        self.send_header("Content-type", "application/octet-stream")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.end_headers()
+        self.wfile.write(pack('<II', numPoints, mask))
+        self.wfile.write(blob)
+        print("sending on " + threading.current_thread().name)
+        return
+
+    def do_GET(self):
         """Respond to a GET request."""
         
-        if (s.path == "/favicon.ico"):
-            send404(s, "file not found")
+        if (self.path == "/favicon.ico"):
+            self.send404("file not found")
             return
             
-        parts = [i for i in s.path.split(sep) if i != '']
+        parts = [i for i in self.path.split(sep) if i != '']
         
         if (len(parts) == 0):
             dbpath = rootdir
-            do_GET_databases(s, dbpath)
+            self.do_GET_databases(dbpath)
             return
         
         if (len(parts) == 1):
             dbname = rootdir + sep + parts[0]
-            do_GET_tables(s, dbname)
+            self.do_GET_tables(dbname)
             return
             
         if (len(parts) == 2):
             dbname = rootdir + sep + parts[0]
             tablename = parts[1]
-            do_GET_info(s, dbname, tablename)
+            self.do_GET_info(dbname, tablename)
             return
 
         elif (len(parts) == 5):
@@ -348,10 +418,10 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             level = parts[2]
             col = parts[3]
             row = parts[4]
-            do_GET_blob(s, dbname, tablename, level, col, row)
+            self.do_GET_blob(dbname, tablename, level, col, row)
             return
 
-        send404(s, "not found: %s" % s.path)
+        self.send404(s, "not found: %s" % s.path)
         return
 
 
@@ -367,8 +437,7 @@ if __name__ == '__main__':
     
     rootdir = os.path.abspath(rootdir)
 
-    server_class = BaseHTTPServer.HTTPServer
-    httpd = server_class((hostname, portnumber), MyHandler)
+    httpd = MyServer((hostname, portnumber), MyHandler)
     print time.asctime(), "Server started: %s:%s" % (hostname, portnumber)
     print time.asctime(), "Serving from: %s" % (rootdir)
     try:
