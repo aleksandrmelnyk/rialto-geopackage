@@ -78,7 +78,6 @@ class MyThread(threading.Thread):
 
     def __init__(self, *args, **kwargs):
         threading.Thread.__init__(self, *args, **kwargs)
-        print("starting thread: %s" % self.name)
         self.currConn = None
         self.currConnName = ""
 
@@ -164,10 +163,9 @@ class MyThread(threading.Thread):
                 row = cur.fetchone()
                 if row == None:
                     break
-                resp["databbox"] = [row[0], row[1], row[2], row[3]]
+                resp["data_bbox"] = [row[0], row[1], row[2], row[3]]
                 resp["description"] = row[4]
                 resp["last_change"] = row[5]
-                resp["srs_id"] = row[6]
             
             cur = con.cursor()
             cur.execute("SELECT min_x,min_y,max_x,max_y FROM gpkg_pctile_matrix_set WHERE table_name='%s'" % tablename)
@@ -175,7 +173,7 @@ class MyThread(threading.Thread):
                 row = cur.fetchone()
                 if row == None:
                     break
-                resp["tilebbox"] = [row[0], row[1], row[2], row[3]]
+                resp["tile_bbox"] = [row[0], row[1], row[2], row[3]]
             
             cur = con.cursor()
             cur.execute("SELECT matrix_width,matrix_height FROM gpkg_pctile_matrix WHERE table_name='%s' AND zoom_level=0" % tablename)
@@ -183,8 +181,8 @@ class MyThread(threading.Thread):
                 row = cur.fetchone()
                 if row == None:
                     break
-                resp["numTilesX"] = row[0]
-                resp["numTilesY"] = row[1]
+                resp["num_cols_L0"] = row[0]
+                resp["num_rows_L0"] = row[1]
 
             resp["dimensions"] = list()
             
@@ -199,9 +197,9 @@ class MyThread(threading.Thread):
                 dims["name"] = row[1]
                 dims["datatype"] = row[2]
                 dims["description"] = row[3]
-                dims["min"] = row[4]
+                dims["minimum"] = row[4]
                 dims["mean"] = row[5]
-                dims["max"] = row[6]
+                dims["maximum"] = row[6]
                 resp["dimensions"].append(dims)
 
             # TODO: metadata
@@ -368,7 +366,7 @@ class MyHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         me = threading.current_thread()
 
         results = me.getBlob(dbname, tablename, level, col, row)
-        if (t == None):
+        if (results == None):
             # tile does not exist (and therefore has no point data)
             self.send_response(200)
             self.send_header("Content-type", "application/octet-stream")
@@ -384,7 +382,7 @@ class MyHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(pack('<II', numPoints, mask))
         self.wfile.write(blob)
-        print("sending blob on " + threading.current_thread().name)
+        #print("sending blob on " + threading.current_thread().name)
 
 
     def do_GET(self):
