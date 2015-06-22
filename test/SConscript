@@ -1,0 +1,37 @@
+Import('cppflags')
+
+srcs = Split("""
+    GeoPackageTest.cpp
+    RialtoWriterTest.cpp
+    RialtoReaderTest.cpp
+    TileMathTest.cpp
+    RialtoTest.cpp
+    main.cpp
+    """)
+
+incs = Split("""
+    .
+    #/include
+    #/../install/pdal/include
+    #/vendor/gtest-1.7.0/include
+    """)
+
+libpath = Split("""
+    #../install/pdal/lib
+    #/src
+    ../gtest-1.7.0
+    ../src
+    """)
+
+libs = Split("""
+    pdal_util
+    pdalcpp
+    sqlite3
+    laszip
+    rialto
+    gtest
+    """)
+
+Program('rialtotest', srcs,
+    CPPPATH=incs, CPPFLAGS=cppflags,
+    LIBS=libs, LIBPATH=libpath)

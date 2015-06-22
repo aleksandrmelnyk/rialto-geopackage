@@ -1,3 +1,6 @@
+mybuild
+.sconsign.dblite
+
 *.o
 *.a
 *.la

@@ -1,0 +1,32 @@
+Import('cppflags')
+
+srcs = Split("""
+    Tool.cpp
+    main.cpp
+    """)
+
+incs = Split("""
+    .
+    #include
+    #../install/pdal/include
+    """)
+
+libpath = Split("""
+    #../install/pdal/lib
+    ../src
+    """)
+
+libs = Split("""
+    pdal_util
+    pdalcpp
+    sqlite3
+    laszip
+    rialto
+    """)
+
+rialto = Program('rialto', srcs,
+    CPPPATH=incs, CPPFLAGS=cppflags,
+    LIBS=libs, LIBPATH=libpath)
+    
+env = Environment()
+env.Install('/tmp/foobar', rialto)
