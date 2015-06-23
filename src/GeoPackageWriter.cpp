@@ -250,7 +250,9 @@ void GeoPackageWriter::updateDimensionStats(const std::string& tableName,
     if (dimName == "X")
     {
         std::ostringstream oss;
+        
         oss << "UPDATE gpkg_contents SET"
+            << std::setprecision(FP_STRING_PRECISION)
             << " min_x=" << min << ","
             << " max_x=" << max
             << " WHERE table_name='" << tableName << "'";
@@ -261,7 +263,9 @@ void GeoPackageWriter::updateDimensionStats(const std::string& tableName,
     if (dimName == "Y")
     {
         std::ostringstream oss;
-        oss << "UPDATE gpkg_contents SET"
+        
+        oss << std::setprecision(FP_STRING_PRECISION)
+            << "UPDATE gpkg_contents SET"
             << " min_y=" << min << ","
             << " max_y=" << max
             << " WHERE table_name='" << tableName << "'";
@@ -332,7 +336,7 @@ void GeoPackageWriter::writeDimensions(const GpkgMatrixSet& data)
         " minimum, mean, maximum)"
         " VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
-    int i = 0;
+    uint32_t i = 0;
     for (auto dim: data.getDimensions())
     {
         records rs;

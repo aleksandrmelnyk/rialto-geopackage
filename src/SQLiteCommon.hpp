@@ -36,22 +36,32 @@
 
 #include <sqlite3.h>
 
+#include <iomanip> // std::setprecision
+
 namespace rialto
 {
     
-    
+// TODO: is 20 a good number?
+#define FP_STRING_PRECISION 20
+
 class column
 {
 public:
 
     column() : null(true), blobBuf(0), blobLen(0){};
-    template<typename T> column( T v) : null(false), blobBuf(0), blobLen(0)
-    {
-        data = boost::lexical_cast<std::string>(v);
-    }
     column(std::string v) : null(false), blobBuf(0), blobLen(0)
     {
         data = v;
+    }
+    column(double v) : null(false), blobBuf(0), blobLen(0)
+    {
+        std::ostringstream ss;
+        ss << std::setprecision(FP_STRING_PRECISION) << v;
+        data = ss.str();
+    }
+    column(uint32_t v) : null(false), blobBuf(0), blobLen(0)
+    {
+        data = boost::lexical_cast<std::string>(v);
     }
 
     std::string data;

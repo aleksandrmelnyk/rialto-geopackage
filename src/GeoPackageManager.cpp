@@ -130,27 +130,27 @@ void GeoPackageManager::createTableGpkgSpatialRefSys()
 
     const std::string wkt4326 = SpatialReference("EPSG:4326").getWKT(SpatialReference::eCompoundOK);
     r1.push_back(column("EPSG:4326"));
-    r1.push_back(column(4326));
+    r1.push_back(column(4326u));
     r1.push_back(column("EPSG"));
-    r1.push_back(column(4326));
+    r1.push_back(column(4326u));
     r1.push_back(column(wkt4326));
     r1.push_back(column("EPSG:4326"));
     rs1.push_back(r1);
     m_sqlite->insert(data, rs1);
 
     r2.push_back(column("undefined_cartesian"));
-    r2.push_back(column(-1));
+    r2.push_back(column((uint32_t)-1));
     r2.push_back(column("NONE"));
-    r2.push_back(column(-1));
+    r2.push_back(column((uint32_t)-1));
     r2.push_back(column("undefined"));
     r2.push_back(column("undefined_cartesian"));
     rs2.push_back(r2);
     m_sqlite->insert(data, rs2);
 
     r3.push_back(column("undefined_geographic"));
-    r3.push_back(column(0));
+    r3.push_back(column(0u));
     r3.push_back(column("NONE"));
-    r3.push_back(column(0));
+    r3.push_back(column(0u));
     r3.push_back(column("undefined"));
     r3.push_back(column("undefined_geographic"));
     rs3.push_back(r3);

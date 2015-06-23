@@ -287,11 +287,11 @@ bool GeoPackageReader::queryForTiles_step(GpkgTile& info)
         return false;
     }
 
-    const uint32_t level = boost::lexical_cast<double>(r->at(0).data);
-    const uint32_t column = boost::lexical_cast<double>(r->at(1).data);
-    const uint32_t row = boost::lexical_cast<double>(r->at(2).data);
-    const uint32_t numPoints = boost::lexical_cast<double>(r->at(3).data);
-    const uint32_t mask = boost::lexical_cast<double>(r->at(4).data);
+    const uint32_t level = boost::lexical_cast<uint32_t>(r->at(0).data);
+    const uint32_t column = boost::lexical_cast<uint32_t>(r->at(1).data);
+    const uint32_t row = boost::lexical_cast<uint32_t>(r->at(2).data);
+    const uint32_t numPoints = boost::lexical_cast<uint32_t>(r->at(3).data);
+    const uint32_t mask = boost::lexical_cast<uint32_t>(r->at(4).data);
 
     // this query always reads the points
     const std::vector<char>& v = (const std::vector<char>&)(r->at(5).blobBuf);

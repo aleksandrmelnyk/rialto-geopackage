@@ -40,6 +40,10 @@
 namespace rialto
 {
 
+static double doubleFromString(const std::string& str)
+{
+    return strtod(str.c_str(), NULL);
+}
 
 GeoPackage::GeoPackage(const std::string& connection, LogPtr log) :
     m_connection(connection),
@@ -203,10 +207,10 @@ void GeoPackage::readMatrixSet(std::string const& name, GpkgMatrixSet& info) con
         }
 
         datetime = r->at(0).data;
-        data_min_x = boost::lexical_cast<double>(r->at(1).data);
-        data_min_y = boost::lexical_cast<double>(r->at(2).data);
-        data_max_x = boost::lexical_cast<double>(r->at(3).data);
-        data_max_y = boost::lexical_cast<double>(r->at(4).data);
+        data_min_x = doubleFromString(r->at(1).data);
+        data_min_y = doubleFromString(r->at(2).data);
+        data_max_x = doubleFromString(r->at(3).data);
+        data_max_y = doubleFromString(r->at(4).data);
         srs_id = boost::lexical_cast<uint32_t>(r->at(5).data);
         description = r->at(6).data;
         assert(!m_sqlite->next());
@@ -226,10 +230,10 @@ void GeoPackage::readMatrixSet(std::string const& name, GpkgMatrixSet& info) con
         // should get exactly one row back
         const row* r = m_sqlite->get();
         assert(r);
-        tmset_min_x = boost::lexical_cast<double>(r->at(0).data);
-        tmset_min_y = boost::lexical_cast<double>(r->at(1).data);
-        tmset_max_x = boost::lexical_cast<double>(r->at(2).data);
-        tmset_max_y = boost::lexical_cast<double>(r->at(3).data);
+        tmset_min_x = doubleFromString(r->at(0).data);
+        tmset_min_y = doubleFromString(r->at(1).data);
+        tmset_max_x = doubleFromString(r->at(2).data);
+        tmset_max_y = doubleFromString(r->at(3).data);
         assert(!m_sqlite->next());
     }
 
@@ -405,9 +409,9 @@ void GeoPackage::readDimensions(std::string const& name, std::vector<GpkgDimensi
         const std::string name = r->at(1).data;
         const std::string dataType = r->at(2).data;
         const std::string description = r->at(3).data;
-        const double minimum = boost::lexical_cast<double>(r->at(4).data);
-        const double mean = boost::lexical_cast<double>(r->at(5).data);
-        const double maximum = boost::lexical_cast<double>(r->at(6).data);
+        const double minimum = doubleFromString(r->at(4).data);
+        const double mean = doubleFromString(r->at(5).data);
+        const double maximum = doubleFromString(r->at(6).data);
 
         GpkgDimension info(name, position, dataType, description, minimum, mean, maximum);
 
