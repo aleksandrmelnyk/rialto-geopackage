@@ -162,14 +162,18 @@ void RialtoWriter::writeAllTiles(ViewTileSet& viewTileSet)
 
     for (auto tile: viewTileSet.getViewTiles())
     {
+        assert(tile != NULL);
         PointView* pv = tile->getPointView().get();
-        writeTile(pv, tile->getLevel(), tile->getColumn(), tile->getRow(), tile->getMask());
-
-        if (tile->getLevel() == m_maxLevel)
+        if (pv)
         {
-            collectStats(pv);
-        }
+            writeTile(pv, tile->getLevel(), tile->getColumn(), tile->getRow(), tile->getMask());
 
+            if (tile->getLevel() == m_maxLevel)
+            {
+                collectStats(pv);
+            }
+        }
+        
         ++cnt;
         
         hb.beat(cnt, numTiles);
