@@ -32,41 +32,23 @@
 * OF SUCH DAMAGE.
 ****************************************************************************/
 
-#include <pdal/pdal.hpp>
+#include "Tool.hpp"
 
 using namespace pdal;
 
 
-class Tool
+class InfoTool : public Tool
 {
 public:
-    enum FileType
-    {
-        TypeInvalid,
-        TypeLas,        // rw
-        TypeLaz,        // rw
-        TypeRialto,     // rw
-    };
+    InfoTool();
+    ~InfoTool();
 
-    Tool();
-    virtual ~Tool();
-
-    virtual void processOptions(int argc, char* argv[]) = 0;
-    virtual void run() = 0;
+    void processOptions(int argc, char* argv[]);
+    void run();
     
-    static void error(const char* p, const char* q=NULL);
-    static bool streq(const char* p, const char* q);
-    static std::string toString(FileType);
-
-protected:
-    virtual void printUsage() const = 0;
-    
-    Stage* createReprojector();
-    static FileType inferType(const std::string&);
-    static Stage* createReader(const std::string& name, FileType type);
-    static Stage* createWriter(const std::string& name, FileType type, uint32_t maxLevel);
-
-    static void verify(Stage* readerExpected, Stage* readerActual);
+    void printUsage() const;
 
 private:
+    std::string m_inputName;
+    FileType m_inputType;
 };

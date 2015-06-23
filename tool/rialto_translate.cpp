@@ -32,41 +32,16 @@
 * OF SUCH DAMAGE.
 ****************************************************************************/
 
-#include <pdal/pdal.hpp>
-
-using namespace pdal;
+#include "TranslateTool.hpp"
 
 
-class Tool
+int main(int argc, char* argv[])
 {
-public:
-    enum FileType
-    {
-        TypeInvalid,
-        TypeLas,        // rw
-        TypeLaz,        // rw
-        TypeRialto,     // rw
-    };
+    TranslateTool tool;
 
-    Tool();
-    virtual ~Tool();
+    tool.processOptions(argc, argv);
 
-    virtual void processOptions(int argc, char* argv[]) = 0;
-    virtual void run() = 0;
-    
-    static void error(const char* p, const char* q=NULL);
-    static bool streq(const char* p, const char* q);
-    static std::string toString(FileType);
+    tool.run();
 
-protected:
-    virtual void printUsage() const = 0;
-    
-    Stage* createReprojector();
-    static FileType inferType(const std::string&);
-    static Stage* createReader(const std::string& name, FileType type);
-    static Stage* createWriter(const std::string& name, FileType type, uint32_t maxLevel);
-
-    static void verify(Stage* readerExpected, Stage* readerActual);
-
-private:
-};
+    return 0;
+}

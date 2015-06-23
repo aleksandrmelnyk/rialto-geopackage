@@ -34,40 +34,30 @@
 
 #include "Tool.hpp"
 
-// TODO: document usage
-// TODO: add stats output
-// TODO: add -info option
+using namespace pdal;
 
 
-int main(int argc, char* argv[])
+class TranslateTool : public Tool
 {
-    Tool tool;
+public:
+    TranslateTool();
+    ~TranslateTool();
 
-    tool.processOptions(argc, argv);
+    void processOptions(int argc, char* argv[]);
 
-    pdal::Stage* reader = tool.createReader();
-    pdal::Stage* filter = tool.createReprojector();
-    pdal::Stage* writer = tool.createWriter();
+    void run();
+    void printUsage() const;
     
-    if (filter)
-    {
-        filter->setInput(*reader);
-        writer->setInput(*filter);
-    }
-    else
-    {
-        writer->setInput(*reader);        
-    }
+private:
+    void printSettings() const;
 
-    pdal::PointTable table;
-    writer->prepare(table);
-    writer->execute(table);
+    std::string m_inputName;
+    std::string m_outputName;
 
-    tool.verify();
+    FileType m_inputType;
+    FileType m_outputType;
 
-    delete writer;
-    delete filter;
-    delete reader;
-
-    return 0;
-}
+    bool m_doVerify;
+    uint32_t m_maxLevel;
+    bool m_doReprojection;
+};

@@ -4,7 +4,8 @@ env = env.Clone()
 
 srcs = Split("""
     Tool.cpp
-    main.cpp
+    InfoTool.cpp
+    TranslateTool.cpp
     """)
 
 cpppath = Split(env.subst("""
@@ -14,6 +15,7 @@ cpppath = Split(env.subst("""
     """))
 
 libpath = Split(env.subst("""
+    .
     $pdal_prefix/lib
     ../src
     """))
@@ -24,13 +26,42 @@ libs = Split("""
     sqlite3
     laszip
     rialto
+    tool
     """)
 
-rialto = Program('rialto', srcs,
+tool = Library('tool', srcs,
     CPPPATH=cpppath, 
     CCFLAGS=env["CCFLAGS"],
     CXXFLAGS=env["CXXFLAGS"],
     LIBPATH=libpath,
     LIBS=libs)
     
-Install(install_prefix + "/bin", rialto)
+rialto_info = Object('rialto_info', 'rialto_info.cpp',
+    CPPPATH=cpppath, 
+    CCFLAGS=env["CCFLAGS"],
+    CXXFLAGS=env["CXXFLAGS"],
+    LIBPATH=libpath,
+    LIBS=libs)
+
+rialto_translate = Object('rialto_translate', 'rialto_translate.cpp',
+    CPPPATH=cpppath, 
+    CCFLAGS=env["CCFLAGS"],
+    CXXFLAGS=env["CXXFLAGS"],
+    LIBPATH=libpath,
+    LIBS=libs)
+
+rialto_info = Program('rialto_info', [tool, rialto_info],
+    CPPPATH=cpppath, 
+    CCFLAGS=env["CCFLAGS"],
+    CXXFLAGS=env["CXXFLAGS"],
+    LIBPATH=libpath,
+    LIBS=libs)
+
+rialto_translate = Program('rialto_translate', [tool, rialto_translate],
+    CPPPATH=cpppath, 
+    CCFLAGS=env["CCFLAGS"],
+    CXXFLAGS=env["CXXFLAGS"],
+    LIBPATH=libpath,
+    LIBS=libs)
+    
+Install(install_prefix + "/bin", [rialto_info, rialto_translate])

@@ -44,11 +44,23 @@
 #include <pdal/LasReader.hpp>
 #include <pdal/LasWriter.hpp>
 #include <pdal/ReprojectionFilter.hpp>
-#
+
 using namespace pdal;
 using namespace rialto;
 
-static void error(const char* p, const char* q=NULL)
+
+
+Tool::Tool()
+{
+    Utils::random_seed(17);
+}
+
+
+Tool::~Tool()
+{}
+
+    
+void Tool::error(const char* p, const char* q)
 {
     fprintf(stderr, "ERROR: %s", p);
     if (q)
@@ -60,40 +72,28 @@ static void error(const char* p, const char* q=NULL)
 }
 
 
-static bool streq(const char* p, const char* q)
+bool Tool::streq(const char* p, const char* q)
 {
     return (strcmp(p,q)==0);
 }
 
 
-Tool::Tool() :
-    m_inputName(NULL),
-    m_outputName(NULL),
-    m_inputType(TypeInvalid),
-    m_outputType(TypeInvalid),
-    m_haveVerify(false),
-    m_maxLevel(15),
-    m_rBounds(BOX3D(-189.9, -89.9, 189.9, 89.9, -999999.0, 999999.0)),
-    m_qBounds(BOX3D(-189.9, -89.9, 189.9, 89.9, -999999.0, 999999.0)),
-    m_haveQuery(false),
-    m_haveRandom(false),
-    m_rCount(1000),
-    m_haveReproject(false)
+std::string Tool::toString(FileType type)
 {
-    Utils::random_seed(17);
+    switch (type)
+    {
+        case TypeLas:       return "las";
+        case TypeLaz:       return "laz";
+        case TypeRialto:    return "geopackage";
+        default: break;
+    }
+    return "INVALID";
 }
 
 
-Tool::~Tool()
-{}
-
-
-Tool::FileType Tool::inferType(const char* p)
+Tool::FileType Tool::inferType(const std::string& p)
 {
-    if (streq(p, "null")) return TypeNull;
-    if (streq(p, "random")) return TypeRandom;
-
-    const char* ext = strrchr(p, '.');
+    const char* ext = strrchr(p.c_str(), '.');
     if (streq(ext, ".las")) return TypeLas;
     if (streq(ext, ".laz")) return TypeLaz;
     if (streq(ext, ".gpkg")) return TypeRialto;
@@ -102,123 +102,8 @@ Tool::FileType Tool::inferType(const char* p)
 }
 
 
-void Tool::processOptions(int argc, char* argv[])
-{
-    int i = 1;
-
-    while (i < argc)
-    {
-        if (streq(argv[i], "-h"))
-        {
-            printf("Usage: $ rialto_tool -i a.las -o a.gpkg\n");
-            printf("   optional: -q minx miny maxx maxy  # query bounds\n");
-            printf("   optional: -r minx miny maxx maxy  # random limits\n");
-            printf("   optional: -p  # reproject to 4326\n");
-            printf("   optional: -v  # verify\n");
-            error("exiting");
-        }
-        else if (streq(argv[i], "-i"))
-        {
-            m_inputName = argv[++i];
-        }
-        else if (streq(argv[i], "-o"))
-        {
-            m_outputName = argv[++i];
-        }
-        else if (streq(argv[i], "-q"))
-        {
-            m_qBounds.minx = atof(argv[++i]);
-            m_qBounds.miny = atof(argv[++i]);
-            m_qBounds.maxx = atof(argv[++i]);
-            m_qBounds.maxy = atof(argv[++i]);
-            m_haveQuery = true;
-        }
-        else if (streq(argv[i], "-r"))
-        {
-            m_rBounds.minx = atof(argv[++i]);
-            m_rBounds.miny = atof(argv[++i]);
-            m_rBounds.maxx = atof(argv[++i]);
-            m_rBounds.maxy = atof(argv[++i]);
-            m_rCount = atoi(argv[i++]);
-            m_haveRandom = true;
-        }
-        else if (streq(argv[i], "-p"))
-        {
-            m_haveReproject = true;
-        }
-        else if (streq(argv[i], "-m"))
-        {
-            m_maxLevel = atoi(argv[++i]);
-        }
-        else if (streq(argv[i], "-v"))
-        {
-            m_haveVerify = true;
-        }
-        else
-        {
-            error("unrecognized option", argv[i]);
-        }
-
-        ++i;
-    }
-
-    if (!m_inputName) error("input file not specified");
-    if (!m_outputName) error("output file not specified");
-
-    m_inputType = inferType(m_inputName);
-    m_outputType = inferType(m_outputName);
-
-    switch (m_inputType)
-    {
-        case TypeRandom:
-        case TypeLas:
-        case TypeLaz:
-            // ok
-            break;
-        case TypeNull:
-        case TypeInvalid:
-            error("input file type not supported");
-        default:
-            assert(0);
-    }
-
-    switch (m_outputType)
-    {
-        case TypeNull:
-        case TypeLas:
-        case TypeLaz:
-        case TypeRialto:
-            // ok
-            break;
-        case TypeRandom:
-        case TypeInvalid:
-            error("output file type not supported");
-        default:
-            assert(0);
-    }
-
-    if (m_haveRandom && m_inputType != TypeRandom)
-    {
-        error("random mode (-r) requires random input (-i random)");
-    }
-
-    if (m_haveQuery && m_inputType != TypeRialto)
-    {
-        error("query mode (-q) requires sqlite input (-i NAME.gpkg)");
-    }
-}
-
-
-Stage* Tool::createReader()
-{
-    return createReader(m_inputName, m_inputType, m_rBounds, m_rCount);
-}
-
-
 Stage* Tool::createReprojector()
 {
-    if (!m_haveReproject) return NULL;
-
     Stage* filter = new ReprojectionFilter();
     
     const SpatialReference srs("EPSG:4326");
@@ -233,25 +118,13 @@ Stage* Tool::createReprojector()
 }
 
 
-Stage* Tool::createWriter()
-{
-    return createWriter(m_outputName, m_outputType);
-}
-
-
-Stage* Tool::createReader(const char* name, FileType type, const BOX3D& rBounds, uint32_t rCount)
+Stage* Tool::createReader(const std::string& name, FileType type)
 {
     Options opts;
     Reader* reader = NULL;
 
     switch (type)
     {
-        case TypeRandom:
-            opts.add("bounds", rBounds);
-            opts.add("count", rCount);
-            opts.add("mode", "random");
-            reader = new FauxReader();
-            break;
         case TypeLas:
             opts.add("filename", name);
             reader = new LasReader();
@@ -269,14 +142,12 @@ Stage* Tool::createReader(const char* name, FileType type, const BOX3D& rBounds,
             break;
     }
 
-    //((RialtoReader*)reader)->getMatrixSet().getName();
-
     reader->setOptions(opts);
     return reader;
 }
 
 
-Stage* Tool::createWriter(const char* name, FileType type)
+Stage* Tool::createWriter(const std::string& name, FileType type, uint32_t maxLevel)
 {
     FileUtils::deleteFile(name);
 
@@ -285,9 +156,6 @@ Stage* Tool::createWriter(const char* name, FileType type)
 
     switch (type)
     {
-        case TypeNull:
-            writer = new NullWriter();
-            break;
         case TypeLas:
             opts.add("filename", name);
             writer = new LasWriter();
@@ -311,15 +179,12 @@ Stage* Tool::createWriter(const char* name, FileType type)
             opts.add("numRowsAtL0", 1);
             opts.add("timestamp", "mytimestamp");
             opts.add("description", "mydescription");
-            opts.add("maxLevel", 16);
+            opts.add("maxLevel", maxLevel);
             opts.add("tms_minx", -180.0);
             opts.add("tms_miny", -90.0);
             opts.add("tms_maxx", 180.0);
             opts.add("tms_maxy", 90.0);
             writer = new rialto::RialtoWriter();
-            
-            
-
             break;
         default:
             assert(0);
@@ -333,8 +198,6 @@ Stage* Tool::createWriter(const char* name, FileType type)
 
 static void verifyPoints(PointViewPtr viewA, PointViewPtr viewE)
 {
-    // TODO: we only test X, Y, Z
-
     for (uint32_t i=0; i<viewA->size(); i++)
     {
         const double xA = viewA->getFieldAs<double>(Dimension::Id::X, i);
@@ -350,21 +213,19 @@ static void verifyPoints(PointViewPtr viewA, PointViewPtr viewE)
           char buf[1024];
           sprintf(buf, "%i:\n\txA=%f\txE=%f\n\tyA=%f\tyE=%f\n\tzA=%f\tzE=%f\n",
               i, xA, xE, yA, yE, zA, zE);
-          error("verify failed", buf);
+          Tool::error("verify failed", buf);
         }
     }
 }
 
 
-void Tool::verify()
+void Tool::verify(Stage* readerExpected, Stage* readerActual)
 {
-    if (!m_haveVerify) return;
-
     BOX3D unusedBox;
     uint32_t unusedCount;
 
-    Stage* readerExpected = createReader(m_inputName, m_inputType, m_rBounds, m_rCount);
-    Stage* readerActual = createReader(m_outputName, m_outputType, unusedBox, unusedCount);
+//    Stage* readerExpected = createReader(m_inputName, m_inputType, m_rBounds, m_rCount);
+//    Stage* readerActual = createReader(m_outputName, m_outputType, unusedBox, unusedCount);
 
     PointViewSet viewsActual;
     PointViewPtr viewActual;
