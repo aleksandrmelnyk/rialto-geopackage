@@ -111,6 +111,22 @@ void TranslateTool::run()
     delete writer;
     delete filter;
     delete reader;
+    
+    if (m_doVerify)
+    {
+        pdal::Stage* expectedReader = createReader(m_inputName, m_inputType);
+        pdal::Stage* filter = NULL;
+        if (m_doReprojection)
+        {
+            filter = createReprojector();
+            filter->setInput(*expectedReader);
+            expectedReader = filter;
+        }
+        
+        pdal::Stage* actualReader = createReader(m_outputName, m_outputType);
+        
+        verify(expectedReader, actualReader);
+    }
 }
 
 

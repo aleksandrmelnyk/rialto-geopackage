@@ -216,37 +216,79 @@ Stage* Tool::createWriter(const std::string& name, FileType type, uint32_t maxLe
 }
 
 
+static bool EQ(double s, double t)
+{
+    const double delta = abs(t-s) * 0.00001;
+    bool ok = (s >= t-delta && s <= t+delta);
+    return ok;
+}
+
+
 static void verifyPoints(PointViewPtr viewA, PointViewPtr viewE)
 {
-    for (uint32_t i=0; i<viewA->size(); i++)
+    // TODO: yes, this is O(n^2)...
+    
+    const uint32_t cnt = viewA->size();
+    
+    double* ax = new double[cnt];
+    double* ay = new double[cnt];
+    double* az = new double[cnt];
+    double* ex = new double[cnt];
+    double* ey = new double[cnt];
+    double* ez = new double[cnt];
+
+    bool* matched = new bool[cnt];
+
+    Heartbeat hb(0);
+
+    for (uint32_t i=0; i<cnt; i++)
     {
-        const double xA = viewA->getFieldAs<double>(Dimension::Id::X, i);
-        const double yA = viewA->getFieldAs<double>(Dimension::Id::Y, i);
-        const double zA = viewA->getFieldAs<double>(Dimension::Id::Z, i);
+        ax[i] = viewA->getFieldAs<double>(Dimension::Id::X, i);
+        ay[i] = viewA->getFieldAs<double>(Dimension::Id::Y, i);
+        az[i] = viewA->getFieldAs<double>(Dimension::Id::Z, i);
 
-        const double xE = viewE->getFieldAs<double>(Dimension::Id::X, i);
-        const double yE = viewE->getFieldAs<double>(Dimension::Id::Y, i);
-        const double zE = viewE->getFieldAs<double>(Dimension::Id::Z, i);
+        ex[i] = viewE->getFieldAs<double>(Dimension::Id::X, i);
+        ey[i] = viewE->getFieldAs<double>(Dimension::Id::Y, i);
+        ez[i] = viewE->getFieldAs<double>(Dimension::Id::Z, i);
+        
+        matched[i] = false;
+    }
 
-        if (xA != xE || yA != yE || zA != zE)
+    for (uint32_t i=0; i<cnt; i++)
+    {
+        bool ok = false;
+        for (uint32_t j=0; j<cnt; j++)
         {
-          char buf[1024];
-          sprintf(buf, "%i:\n\txA=%f\txE=%f\n\tyA=%f\tyE=%f\n\tzA=%f\tzE=%f\n",
-              i, xA, xE, yA, yE, zA, zE);
-          Tool::error("verify failed", buf);
+            if (matched[j]) continue;
+            
+            if (EQ(ax[i],ex[j]) && EQ(ay[i],ey[j]) && EQ(az[i],ez[j]))
+            {
+                matched[j] = true; // we've used up this expected value
+                ok = true;
+                break;
+            }
         }
+        
+        if (!ok)
+        {
+          printf("verify failed: %i:\n\tax=%f\tay=%f\taz=%f\n",
+              i, ax[i], ay[i], az[i]);
+        }
+        
+        hb.beat(i, cnt);
+    }
+
+    for (uint32_t i=0; i<cnt; i++)
+    {
+        assert(matched[i]);
     }
 }
 
 
 void Tool::verify(Stage* readerExpected, Stage* readerActual)
 {
-    BOX3D unusedBox;
-    uint32_t unusedCount;
-
-//    Stage* readerExpected = createReader(m_inputName, m_inputType, m_rBounds, m_rCount);
-//    Stage* readerActual = createReader(m_outputName, m_outputType, unusedBox, unusedCount);
-
+    printf("Starting verify...\n");
+    
     PointViewSet viewsActual;
     PointViewPtr viewActual;
     PointViewSet viewsExpected;
@@ -259,7 +301,7 @@ void Tool::verify(Stage* readerExpected, Stage* readerActual)
     pdal::PointTable tableExpected;
     readerExpected->prepare(tableExpected);
     viewsExpected = readerExpected->execute(tableExpected);
-
+    
     if (viewsActual.size() != viewsExpected.size() || viewsActual.size() != 1)
     {
         error("verify failed", "unequal view set sizes");
