@@ -50,7 +50,8 @@ using namespace rialto;
 
 
 
-Tool::Tool()
+Tool::Tool() :
+    m_inputType(TypeInvalid)
 {
     Utils::random_seed(17);
 }
@@ -58,6 +59,25 @@ Tool::Tool()
 
 Tool::~Tool()
 {}
+
+
+void Tool::processOptions(int argc, char* argv[])
+{
+    const bool ok = l_processOptions(argc, argv);
+    if (!ok) {
+        printUsage();
+        error("aborting");
+    }
+    
+    if (m_inputName.empty()) {
+        error("input file not specified");
+    }
+    if (!FileUtils::fileExists(m_inputName)) {
+        error("input file does not exist");
+    }
+    
+    m_inputType = inferType(m_inputName);
+}
 
     
 void Tool::error(const char* p, const char* q)

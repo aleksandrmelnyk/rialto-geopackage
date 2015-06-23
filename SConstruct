@@ -8,7 +8,7 @@ env = Environment()
 
 debug = ARGUMENTS.get('debug', 1)
 if int(debug):
-    env.Append(CCFLAGS = '-g')
+    env.Append(CCFLAGS = '-g -ferror-limit=3')
 else:
     env.Append(CCFLAGS = '-O3')
 

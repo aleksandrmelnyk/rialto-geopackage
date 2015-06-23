@@ -51,7 +51,6 @@ using namespace rialto;
 
 TranslateTool::TranslateTool() :
     Tool(),
-    m_inputType(TypeInvalid),
     m_outputType(TypeInvalid),
     m_doVerify(false),
     m_maxLevel(15),
@@ -70,7 +69,9 @@ void TranslateTool::printSettings() const
     printf("Output file:  %s (%s)\n", m_outputName.c_str(), toString(m_outputType).c_str());
     printf("Verification: %s\n", m_doVerify ? "true" : "false");
     printf("Reprojection: %s\n", m_doReprojection ? "true" : "false");
-    printf("Max level:    %d\n", m_maxLevel);
+    if (m_outputType == TypeRialto) {
+        printf("Max level:    %d\n", m_maxLevel);
+    }
 }
 
 
@@ -98,7 +99,14 @@ void TranslateTool::run()
 
     pdal::PointTable table;
     writer->prepare(table);
-    writer->execute(table);
+    PointViewSet pvs = writer->execute(table);
+    
+    uint32_t cnt = 0;
+    for (auto pv: pvs) {
+        cnt += pv->size();
+    }
+    
+    printf("Points processed: %u\n", cnt);
 
     delete writer;
     delete filter;
@@ -123,7 +131,7 @@ void TranslateTool::printUsage() const
 }
 
 
-void TranslateTool::processOptions(int argc, char* argv[])
+bool TranslateTool::l_processOptions(int argc, char* argv[])
 {
     int i = 1;
 
@@ -131,8 +139,7 @@ void TranslateTool::processOptions(int argc, char* argv[])
     {
         if (streq(argv[i], "-h"))
         {
-            printUsage();
-            error("aborting");
+            return false;
         }
         
         if (streq(argv[i], "-i"))
@@ -162,10 +169,11 @@ void TranslateTool::processOptions(int argc, char* argv[])
 
         ++i;
     }
-
-    if (m_inputName.empty()) error("input file not specified");
-    m_inputType = inferType(m_inputName);
     
-    if (m_outputName.empty()) error("output file not specified");
+    if (m_outputName.empty()) {
+        error("output file not specified");
+    }
     m_outputType = inferType(m_outputName);
+    
+    return true;
 }

@@ -43,12 +43,11 @@ public:
     InfoTool();
     ~InfoTool();
 
-    void processOptions(int argc, char* argv[]);
     void run();
-    
+
+protected:
+    bool l_processOptions(int argc, char* argv[]);
     void printUsage() const;
 
 private:
-    std::string m_inputName;
-    FileType m_inputType;
 };

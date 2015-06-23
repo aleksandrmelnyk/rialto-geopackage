@@ -43,18 +43,18 @@ public:
     TranslateTool();
     ~TranslateTool();
 
-    void processOptions(int argc, char* argv[]);
 
     void run();
+    
+protected:
+    bool l_processOptions(int argc, char* argv[]);
     void printUsage() const;
     
 private:
+
     void printSettings() const;
 
-    std::string m_inputName;
     std::string m_outputName;
-
-    FileType m_inputType;
     FileType m_outputType;
 
     bool m_doVerify;

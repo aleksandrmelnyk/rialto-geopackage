@@ -51,7 +51,7 @@ public:
     Tool();
     virtual ~Tool();
 
-    virtual void processOptions(int argc, char* argv[]) = 0;
+    void processOptions(int argc, char* argv[]);
     virtual void run() = 0;
     
     static void error(const char* p, const char* q=NULL);
@@ -59,6 +59,8 @@ public:
     static std::string toString(FileType);
 
 protected:
+    virtual bool l_processOptions(int argc, char* argv[]) = 0;
+    
     virtual void printUsage() const = 0;
     
     Stage* createReprojector();
@@ -67,6 +69,9 @@ protected:
     static Stage* createWriter(const std::string& name, FileType type, uint32_t maxLevel);
 
     static void verify(Stage* readerExpected, Stage* readerActual);
+
+    std::string m_inputName;
+    FileType m_inputType;
 
 private:
 };

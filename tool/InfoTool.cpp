@@ -50,8 +50,7 @@ using namespace rialto;
 
 
 InfoTool::InfoTool() :
-    Tool(),
-    m_inputType(TypeInvalid)
+    Tool()
 {}
 
 
@@ -95,6 +94,7 @@ void InfoTool::run()
         RialtoReader* r = (RialtoReader*)reader;
         const GpkgMatrixSet& ms = r->getMatrixSet();
         printf("Num dimensions: %d\n", ms.getNumDimensions());
+        printf("Max level: %d\n", ms.getMaxLevel());
     }
     else
     {
@@ -105,7 +105,7 @@ void InfoTool::run()
 }
 
 
-void InfoTool::processOptions(int argc, char* argv[])
+bool InfoTool::l_processOptions(int argc, char* argv[])
 {
     int i = 1;
 
@@ -113,8 +113,7 @@ void InfoTool::processOptions(int argc, char* argv[])
     {
         if (streq(argv[i], "-h"))
         {
-            printUsage();
-            error("exiting");
+            return false;
         }
         
         m_inputName = std::string(argv[i]);
@@ -122,6 +121,5 @@ void InfoTool::processOptions(int argc, char* argv[])
         ++i;
     }
 
-    if (m_inputName.empty()) error("input file not specified");
-    m_inputType = inferType(m_inputName);
+    return true;
 }
