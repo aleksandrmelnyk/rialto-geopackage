@@ -197,7 +197,7 @@ point_count_t RialtoReader::read(PointViewPtr view, point_count_t /*not used*/)
         
         log()->get(LogLevel::Debug) << "  view now has this many: " << view->size() << std::endl;
     } while (m_gpkg->queryForTiles_next());
-  
+
     return view->size();
 }
 
@@ -212,7 +212,7 @@ void RialtoReader::doQuery(const TileMath& tmm,
     double tileMinX, tileMinY, tileMaxX, tileMaxY;
     tmm.getTileBounds(info.getColumn(), info.getRow(), info.getLevel(),
                       tileMinX, tileMinY, tileMaxX, tileMaxY);
-    const bool allPointsGood =
+    const bool tileEntirelyInsideQueryBox =
         tmm.rectContainsRect(qMinX, qMinY, qMaxX, qMaxY,
                              tileMinX, tileMinY, tileMaxX, tileMaxY);
 
@@ -225,7 +225,7 @@ void RialtoReader::doQuery(const TileMath& tmm,
     for (uint32_t i=0; i<tempView->size(); i++) {
         const double x = tempView->getFieldAs<double>(Dimension::Id::X, i);
         const double y = tempView->getFieldAs<double>(Dimension::Id::Y, i);
-        if (allPointsGood || (x >= qMinX && x <= qMaxX && y >= qMinY && y <= qMaxY))
+        if (tileEntirelyInsideQueryBox || (x >= qMinX && x <= qMaxX && y >= qMinY && y <= qMaxY))
         {
             view->appendPoint(*tempView, i);
         }
