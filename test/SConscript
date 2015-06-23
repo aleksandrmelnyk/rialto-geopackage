@@ -1,4 +1,5 @@
-Import('cppflags')
+Import('env')
+env = env.Clone()
 
 srcs = Split("""
     GeoPackageTest.cpp
@@ -9,19 +10,18 @@ srcs = Split("""
     main.cpp
     """)
 
-incs = Split("""
+cpppath = Split(env.subst("""
     .
     #/include
-    #/../install/pdal/include
+    $pdal_prefix/include
     #/vendor/gtest-1.7.0/include
-    """)
+    """))
 
-libpath = Split("""
-    #../install/pdal/lib
-    #/src
-    ../gtest-1.7.0
+libpath = Split(env.subst("""
+    $pdal_prefix/lib
+    ../vendor/gtest-1.7.0
     ../src
-    """)
+    """))
 
 libs = Split("""
     pdal_util
@@ -32,6 +32,11 @@ libs = Split("""
     gtest
     """)
 
-Program('rialtotest', srcs,
-    CPPPATH=incs, CPPFLAGS=cppflags,
-    LIBS=libs, LIBPATH=libpath)
+rialtotest = Program('rialtotest', srcs,
+    CPPPATH=cpppath, 
+    CCFLAGS=env["CCFLAGS"],
+    CXXFLAGS=env["CXXFLAGS"],
+    LIBPATH=libpath,
+    LIBS=libs)
+
+Depends(rialtotest, "../vendor/gtest-1.7.0/libgtest.a")

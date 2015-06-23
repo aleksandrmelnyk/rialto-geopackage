@@ -1,0 +1,7 @@
+Import('env')
+
+source_dir = env.Dir('#').path + "/vendor/gtest-1.7.0"
+build_dir = env.Dir('.').path
+
+cmd = 'e=`pwd` ; cd %s ; pwd ; cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX=. $$e/%s ; make ' % (build_dir, source_dir)
+env.Command('libgtest.a', '#/vendor/gtest-1.7.0/CMakeLists.txt', cmd)

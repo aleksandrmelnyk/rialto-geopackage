@@ -1,4 +1,5 @@
-Import('cppflags')
+
+Import('env', 'install_prefix')
 
 srcs = Split("""
     GeoPackage.cpp
@@ -11,15 +12,15 @@ srcs = Split("""
     ViewTileCommon.cpp
     """)
 
-incs = Split("""
+cpppath = Split(env.subst("""
     .
     #include
-    #../install/pdal/include
-    """)
+    $pdal_prefix/include
+    """))
 
-libpath = Split("""
-    #../install/pdal/lib
-    """)
+libpath = Split(env.subst("""
+    $pdal_prefix/lib
+    """))
 
 libs = Split("""
     pdal_util
@@ -28,8 +29,13 @@ libs = Split("""
     """)
 
 rialto = SharedLibrary('rialto', srcs,
-    CPPPATH=incs, CPPFLAGS=cppflags,
-    LIBS=libs, LIBPATH=libpath)
+    CPPPATH=cpppath, 
+    CCFLAGS=env["CCFLAGS"],
+    CXXFLAGS=env["CXXFLAGS"],
+    LIBPATH=libpath,
+    LIBS=libs)
 
-env = Environment()
-env.Install('/tmp/foobar', rialto)
+headers = Glob("#include/rialto/*.hpp")
+
+Install(install_prefix + "/lib", rialto)
+Install(install_prefix + "/include/rialto", headers)

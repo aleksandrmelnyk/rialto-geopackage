@@ -1,20 +1,22 @@
-Import('cppflags')
+Import('env', 'install_prefix')
+env = env.Clone()
+
 
 srcs = Split("""
     Tool.cpp
     main.cpp
     """)
 
-incs = Split("""
+cpppath = Split(env.subst("""
     .
     #include
-    #../install/pdal/include
-    """)
+    $pdal_prefix/include
+    """))
 
-libpath = Split("""
-    #../install/pdal/lib
+libpath = Split(env.subst("""
+    $pdal_prefix/lib
     ../src
-    """)
+    """))
 
 libs = Split("""
     pdal_util
@@ -25,8 +27,10 @@ libs = Split("""
     """)
 
 rialto = Program('rialto', srcs,
-    CPPPATH=incs, CPPFLAGS=cppflags,
-    LIBS=libs, LIBPATH=libpath)
+    CPPPATH=cpppath, 
+    CCFLAGS=env["CCFLAGS"],
+    CXXFLAGS=env["CXXFLAGS"],
+    LIBPATH=libpath,
+    LIBS=libs)
     
-env = Environment()
-env.Install('/tmp/foobar', rialto)
+Install(install_prefix + "/bin", rialto)
