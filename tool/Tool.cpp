@@ -239,7 +239,7 @@ static void verifyPoints(PointViewPtr viewA, PointViewPtr viewE)
 
     bool* matched = new bool[cnt];
 
-    Heartbeat hb(0);
+    HeartBeat hb(cnt);
 
     for (uint32_t i=0; i<cnt; i++)
     {
@@ -275,7 +275,7 @@ static void verifyPoints(PointViewPtr viewA, PointViewPtr viewE)
               i, ax[i], ay[i], az[i]);
         }
         
-        hb.beat(i, cnt);
+        hb.beat();
     }
 
     for (uint32_t i=0; i<cnt; i++)

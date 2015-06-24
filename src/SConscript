@@ -2,6 +2,7 @@
 Import('env', 'install_prefix')
 
 srcs = Split("""
+    Event.cpp
     GeoPackage.cpp
     GeoPackageWriter.cpp
     GeoPackageCommon.cpp

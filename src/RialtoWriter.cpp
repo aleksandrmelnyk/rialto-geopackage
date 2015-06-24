@@ -157,8 +157,8 @@ void RialtoWriter::write(const PointViewPtr inView)
 void RialtoWriter::writeAllTiles(ViewTileSet& viewTileSet)
 {
     const int numTiles = viewTileSet.getViewTiles().size();
-    int cnt = 0;
-    Heartbeat hb(50);
+
+    HeartBeat hb(numTiles, 50, 100);
 
     for (auto tile: viewTileSet.getViewTiles())
     {
@@ -174,9 +174,7 @@ void RialtoWriter::writeAllTiles(ViewTileSet& viewTileSet)
             }
         }
         
-        ++cnt;
-        
-        hb.beat(cnt, numTiles);
+        hb.beat();
     }
 }
 
