@@ -52,12 +52,15 @@ class Support
 public:
     static std::string temppath(const std::string& file)
     {
-        return "./temp/" + file;
+        return tempdir + "/" + file;
     }
     static std::string datapath(const std::string& file)
     {
-        return "./../data/" + file;
+        return datadir + "/" + file;
     }
+
+    static std::string tempdir;
+    static std::string datadir;
 };
 
 class PDAL_DLL RialtoTest

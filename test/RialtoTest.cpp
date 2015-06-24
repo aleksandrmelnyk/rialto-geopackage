@@ -40,6 +40,8 @@
 namespace rialtotest
 {
 
+std::string Support::tempdir;
+std::string Support::datadir;
 
 RialtoTest::Data* RialtoTest::sampleDataInit(pdal::PointTable& table, pdal::PointViewPtr view)
 {
