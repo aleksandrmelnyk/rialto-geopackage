@@ -8,13 +8,15 @@ env = Environment()
 
 debug = ARGUMENTS.get('debug', 1)
 if int(debug):
-    env.Append(CCFLAGS = '-g -ferror-limit=3')
+    # clang: -ferror-limit=3
+    # gcc: -fmax-errors=3
+    env.Append(CCFLAGS = '-g')
 else:
     env.Append(CCFLAGS = '-O3')
 
-install_prefix = ARGUMENTS.get('install_prefix', "/Users/mgerlek/work/dev/install/rialto")
+install_prefix = ARGUMENTS.get('install_prefix', "./myinstall")
 
-pdal_prefix = ARGUMENTS.get('pdal_prefix', "/Users/mgerlek/work/dev/install/pdal/")
+pdal_prefix = ARGUMENTS.get('pdal_prefix', "/usr/local")
 
 env.Append(CXXFLAGS = "-std=c++11")
 
