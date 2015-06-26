@@ -128,8 +128,10 @@ class MyThread(threading.Thread):
         
         try:
             con = self.openDatabase(dbname)
-            
-            cur = con.cursor()    
+            if con is None:
+                print "Error: unable to open DB", dbname
+                return None
+            cur = con.cursor()
             cur.execute('SELECT table_name from gpkg_contents')
             while True:
                 row = cur.fetchone()
@@ -327,7 +329,7 @@ class MyHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         self.end_headers()
         files = me.getDatabases(dbpath)
         if (files == None):
-            self.send404(request, "database query failed")
+            self.send404("database query failed")
             return
         self.wfile.write(json.dumps(files, sort_keys=True, indent=4))
 
@@ -337,7 +339,7 @@ class MyHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
         tables = me.listTables(dbname)
         if (tables == None):
-            self.send404(request, "table query failed")
+            self.send404("table query failed")
             return
 
         self.send_response(200)
@@ -352,7 +354,7 @@ class MyHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
         info = me.getInfo(dbname, tablename)
         if (info == None):
-            self.send404(s, "info query failed")
+            self.send404("info query failed")
             return
 
         self.send_response(200)
@@ -415,18 +417,18 @@ class MyHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
             self.do_GET_blob(dbname, tablename, level, col, row)
             return
 
-        self.send404(s, "not found: %s" % s.path)
+        self.send404("not found: %s" % s.path)
 
 
 if __name__ == '__main__':
 
-    if len(sys.argv) != 4:
-        print "Usage: $ server.py hostname portnumber rootdir"
+    if len(sys.argv) != 3:
+        print "Usage: $ server.py portnumber rootdir"
         exit(1)
     
-    hostname = sys.argv[1]
-    portnumber = int(sys.argv[2])
-    rootdir = sys.argv[3]
+    hostname = ''
+    portnumber = int(sys.argv[1])
+    rootdir = sys.argv[2]
     
     rootdir = os.path.abspath(rootdir)
 
