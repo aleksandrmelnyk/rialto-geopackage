@@ -104,13 +104,13 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
 if __name__ == '__main__':
 
-    if len(sys.argv) != 4:
-        print "Usage: $ server.py hostname portnumber rootdir"
+    if len(sys.argv) != 3:
+        print "Usage: $ server.py portnumber rootdir"
         exit(1)
     
-    hostname = sys.argv[1]
-    portnumber = int(sys.argv[2])
-    rootdir = sys.argv[3]
+    hostname = ''
+    portnumber = int(sys.argv[1])
+    rootdir = sys.argv[2]
     
     rootdir = os.path.abspath(rootdir)
 
