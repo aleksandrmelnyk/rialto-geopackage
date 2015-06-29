@@ -19,7 +19,7 @@ GTEST_API_ int main(int argc, char **argv) {
             FileUtils::createDirectory(Support::tempdir);
         }
         
-        Support::datadir = "../rialto-data/demo";
+        Support::datadir = "./data";
         if (!FileUtils::directoryExists(Support::datadir))
         {
             fprintf(stderr, "datadir does not exist: %s\n", Support::datadir.c_str());
