@@ -1,4 +1,4 @@
-FROM radiantblue/rialto-geopackage-tools
+FROM radiantbluetechnologies/rialto-geopackage-tools
 MAINTAINER mpg@flaxen.com
 
 EXPOSE 8080
