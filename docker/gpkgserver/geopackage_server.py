@@ -103,8 +103,10 @@ class MyDatabase:
             self.connection = None
         self.connection_filename = ""
         
-    def list_tables(self):
+    def list_tables(self, reqhandler):
         resp = list()
+
+        reqhandler.log_message("list_tables: %s" % self.connection_filename)
 
         try:
             cursor = self.connection.cursor()
@@ -114,7 +116,9 @@ class MyDatabase:
                 if row == None:
                     break
                 resp.append(row[0])
+                reqhandler.log_message("list_tables got one: %s" % row[0])
         except sqlite3.Error, e:
+            reqhandler.log_message("list_tables failed")
             return self._error(e)
 
         return resp
@@ -231,10 +235,12 @@ class MyThread(threading.Thread):
         names = [os.path.splitext(f)[0] for f in basenames]
         return names    
     
-    def list_tables(self, rootdir, dbname):
+    def list_tables(self, rootdir, dbname, reqhandler):
         ok = self._open_database(rootdir, dbname)
-        if not ok: return None
-        return self.my_db.list_tables()
+        if not ok:
+            reqhandler.log_message("list_tables failed: %s %s" % (rootdir, dbname))
+            return None
+        return self.my_db.list_tables(reqhandler)
 
     def get_info(self, rootdir, dbname, tablename):
         ok = self._open_database(rootdir, dbname)
@@ -318,8 +324,9 @@ class MyHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         self.wfile.write(json.dumps(files, sort_keys=True, indent=4))
 
     def _get_tables(self, rootdir, dbname):
+        self.log_message("_get_tables: %s %s" % (rootdir, dbname))
         me = threading.current_thread()
-        tables = me.list_tables(rootdir, dbname)
+        tables = me.list_tables(rootdir, dbname, self)
         if not tables:
             self._send404("table query failed")
             return
@@ -407,6 +414,7 @@ if __name__ == '__main__':
     rootdir = os.path.abspath(rootdir)
 
     httpd = MyServer(('', portnumber), MyHandler, 10)
+
     print time.asctime(), "Server started on port %s" % (portnumber)
     print time.asctime(), "Serving from: %s" % (rootdir)
     try:
