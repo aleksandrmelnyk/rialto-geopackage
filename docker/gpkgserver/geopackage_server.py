@@ -92,7 +92,7 @@ class MyDatabase:
         try:
             self.connection = sqlite3.connect("file:" + dbname + ".gpkg?mode=ro")
             self.connection_name = dbname
-        except sqlite.Error, e:        
+        except sqlite3.Error, e:        
             return _error(e)
         return True
 
