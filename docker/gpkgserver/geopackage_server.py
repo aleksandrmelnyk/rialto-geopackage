@@ -93,7 +93,7 @@ class MyDatabase:
             self.connection = sqlite3.connect("file:" + dbname + ".gpkg?mode=ro")
             self.connection_name = dbname
         except sqlite3.Error, e:        
-            return _error(e)
+            return self._error(e)
         return True
 
     def close(self):
