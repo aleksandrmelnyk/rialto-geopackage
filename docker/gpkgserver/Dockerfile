@@ -9,6 +9,5 @@ RUN true \
     && ln -s /sampledata /opt/www
 
 COPY geopackage_server.py /usr/local/bin/
-COPY serp-small.gpkg /opt/www/
 
 CMD /usr/local/bin/geopackage_server.py 8080 /opt/www
