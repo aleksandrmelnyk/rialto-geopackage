@@ -64,47 +64,48 @@ from struct import pack
 ##
 class MyDatabase:
     connection = None
-    connection_name = ""
+    connection_filename = ""
 
     def __init__(self):
         self.connection = None
-        self.connection_name = ""
+        self.connection_filename = ""
     
     def _error(self, e):
         print "Error %s:" % e.args[0]
         self.close()
         return None
-        
+
     # static creator, so we can return None
     @staticmethod
-    def open(dbname):
-        if not os.path.isfile(dbname + ".gpkg"):
+    def open(filename):
+        if not os.path.isfile(filename):
             return None
         db = MyDatabase()
-        ok = db._open(dbname)
+        ok = db._open(filename)
         if not ok:
             return None
         return db
 
-    def _open(self, dbname):
-        if self.connection_name == dbname and self.connection != None:
+    def _open(self, filename):
+        if self.connection_filename == filename and self.connection != None:
             return True
+        self.close() # just in case
         try:
-            self.connection = sqlite3.connect("file:" + dbname + ".gpkg?mode=ro")
-            self.connection_name = dbname
-        except sqlite3.Error, e:        
+            self.connection = sqlite3.connect("file:" + filename + "?mode=ro")
+        except sqlite3.Error, e:
             return self._error(e)
+        self.connection_filename = filename
         return True
 
     def close(self):
         if self.connection:
             self.connection.close()
-        self.connection = None
-        self.connection_name = ""
+            self.connection = None
+        self.connection_filename = ""
         
     def list_tables(self):
         resp = list()
-        
+
         try:
             cursor = self.connection.cursor()
             cursor.execute('SELECT table_name from gpkg_contents')
@@ -118,9 +119,9 @@ class MyDatabase:
 
         return resp
 
-    def get_info(self, tablename):
+    def get_info(self, dbname, tablename):
         resp = dict()
-        resp["database"] = self.connection_name
+        resp["database"] = dbname
         resp["table"] = tablename
         resp["version"] = 4
             
@@ -216,34 +217,34 @@ class MyThread(threading.Thread):
         threading.Thread.__init__(self, *args, **kwargs)
         self.my_db = None
 
-    def _open_database(self, dbname):        
-        self.my_db = MyDatabase.open(dbname)
+    def _open_database(self, rootdir, dbname):        
+        self.my_db = MyDatabase.open(rootdir + sep + dbname + ".gpkg")
         if not self.my_db:
             return None
         return True
 
-    def get_databases(self, dbpath):
-        fullnames = glob.glob(dbpath + sep + "*" + ".gpkg")
+    def get_databases(self, rootdir):
+        fullnames = glob.glob(rootdir + sep + "*" + ".gpkg")
 
         # return just the basename of the file
         basenames = [os.path.basename(f) for f in fullnames]
         names = [os.path.splitext(f)[0] for f in basenames]
         return names    
     
-    def list_tables(self, dbname):
-        ok = self._open_database(dbname)
+    def list_tables(self, rootdir, dbname):
+        ok = self._open_database(rootdir, dbname)
         if not ok: return None
         return self.my_db.list_tables()
 
-    def get_info(self, dbname, tablename):
-        ok = self._open_database(dbname)
+    def get_info(self, rootdir, dbname, tablename):
+        ok = self._open_database(rootdir, dbname)
         if not ok: return None
-        return self.my_db.get_info(tablename)
+        return self.my_db.get_info(dbname, tablename)
 
-    def get_blob(self, dbname, table, level, x, y):
-        ok = self._open_database(dbname)
+    def get_blob(self, rootdir, dbname, tablename, level, x, y):
+        ok = self._open_database(rootdir, dbname)
         if not ok: return None
-        return self.my_db.get_blob(table, level, x, y)
+        return self.my_db.get_blob(tablename, level, x, y)
 
 
 ##
@@ -305,9 +306,9 @@ class MyHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Origin", "*")
         self.end_headers()
 
-    def _get_databases(self, dbpath):
+    def _get_databases(self, rootdir):
         me = threading.current_thread()
-        files = me.get_databases(dbpath)
+        files = me.get_databases(rootdir)
         if not files:
             self._send404("databases query failed")
         self.send_response(200)
@@ -316,9 +317,9 @@ class MyHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         self.end_headers()        
         self.wfile.write(json.dumps(files, sort_keys=True, indent=4))
 
-    def _get_tables(self, dbname):
+    def _get_tables(self, rootdir, dbname):
         me = threading.current_thread()
-        tables = me.list_tables(dbname)
+        tables = me.list_tables(rootdir, dbname)
         if not tables:
             self._send404("table query failed")
             return
@@ -328,9 +329,9 @@ class MyHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(json.dumps(tables, sort_keys=True, indent=4))
 
-    def _get_info(self, dbname, tablename):
+    def _get_info(self, rootdir, dbname, tablename):
         me = threading.current_thread()
-        info = me.get_info(dbname, tablename)
+        info = me.get_info(rootdir, dbname, tablename)
         if not info:
             self._send404("info query failed")
             return
@@ -340,9 +341,9 @@ class MyHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(json.dumps(info, sort_keys=True, indent=4))
 
-    def _get_blob(self, dbname, tablename, level, col, row):
+    def _get_blob(self, rootdir, dbname, tablename, level, col, row):
         me = threading.current_thread()
-        results = me.get_blob(dbname, tablename, level, col, row)
+        results = me.get_blob(rootdir, dbname, tablename, level, col, row)
         if not results:
             # tile does not exist (and therefore has no point data)
             self.send_response(200)
@@ -367,28 +368,27 @@ class MyHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         parts = [i for i in self.path.split(sep) if i != '']
         
         if (len(parts) == 0):
-            dbpath = rootdir
-            self._get_databases(dbpath)
+            self._get_databases(rootdir)
             return
-        
+
         if (len(parts) == 1):
-            dbname = rootdir + sep + parts[0]
-            self._get_tables(dbname)
+            dbname = parts[0]
+            self._get_tables(rootdir, dbname)
             return
             
         if (len(parts) == 2):
-            dbname = rootdir + sep + parts[0]
+            dbname = parts[0]
             tablename = parts[1]
-            self._get_info(dbname, tablename)
+            self._get_info(rootdir, dbname, tablename)
             return
 
         elif (len(parts) == 5):
-            dbname = rootdir + sep + parts[0]
+            dbname = parts[0]
             tablename = parts[1]
             level = parts[2]
             col = parts[3]
             row = parts[4]
-            self._get_blob(dbname, tablename, level, col, row)
+            self._get_blob(rootdir, dbname, tablename, level, col, row)
             return
 
         self._send404("not found: %s" % self.path)
