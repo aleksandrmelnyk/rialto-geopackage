@@ -38,6 +38,7 @@
 #include <rialto/RialtoReader.hpp>
 #include <rialto/RialtoWriter.hpp>
 #include "../src/TileMath.hpp"
+#include <rialto/Event.hpp>
 
 using namespace pdal;
 using namespace rialto;

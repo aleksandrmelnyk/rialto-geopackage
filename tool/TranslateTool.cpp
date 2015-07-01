@@ -135,15 +135,15 @@ void TranslateTool::printUsage() const
     printf("Usage: $ rialto_tool\n");
     printf("           -i infile\n");
     printf("           -o outfile\n");
-    printf("           [-maxlevel number]\n");
-    printf("           [-noreproj]\n");
-    printf("           [-verify]\n");
+    printf("           [-m|--maxlevel number]\n");
+    printf("           [-n|--noreproj]\n");
+    printf("           [-v|-verify]\n");
     printf("where:\n");
     printf("  -i: supports .las, .laz, or .gpkg\n");
     printf("  -o: supports .las, .laz, or .gpkg\n");
-    printf("  -noreproj: do not reproject to EPSG:4326\n");
-    printf("  -maxlevel: set the maximum resolution level (default: 15)\n");
-    printf("  -verify: run verification step\n");
+    printf("  -n | --noreproj: do not reproject to EPSG:4326\n");
+    printf("  -m | --maxlevel: set the maximum resolution level (default: 15)\n");
+    printf("  -v | --verify: run verification step\n");
 }
 
 
@@ -166,15 +166,15 @@ bool TranslateTool::l_processOptions(int argc, char* argv[])
         {
             m_outputName = argv[++i];
         }
-        else if (streq(argv[i], "-noreproj"))
+        else if (streq(argv[i], "--noreproj") || streq(argv[i], "-n"))
         {
             m_doReprojection = false;
         }
-        else if (streq(argv[i], "-maxlevel"))
+        else if (streq(argv[i], "--maxlevel") || streq(argv[i], "-m") )
         {
             m_maxLevel = atoi(argv[++i]);
         }
-        else if (streq(argv[i], "-verify"))
+        else if (streq(argv[i], "--verify") || streq(argv[i], "-v"))
         {
             m_doVerify = true;
         }
