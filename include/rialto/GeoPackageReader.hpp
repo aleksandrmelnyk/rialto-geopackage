@@ -73,6 +73,13 @@ public:
     // yes this returns the tile ids (table's PK)
     void readTileIdsAtLevel(std::string const& name, uint32_t level, std::vector<uint32_t>& tileIds) const;
 
+    // query for id of the tile at (level,col,row)
+    // returns -1 if not found
+    uint32_t queryForTileId(std::string const& name,
+                            uint32_t level,
+                            uint32_t column,
+                            uint32_t row) const;
+
     // query for all the tiles of a tile set, bounded by bbox region
     // returns the tile ids (PKs from table)
     void queryForTileIds(std::string const& name,

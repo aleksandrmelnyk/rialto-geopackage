@@ -37,6 +37,7 @@
 
 #include <rialto/GeoPackageCommon.hpp>
 #include <rialto/GeoPackageManager.hpp>
+#include <rialto/GeoPackageReader.hpp>
 #include <rialto/RialtoReader.hpp>
 #include <rialto/RialtoWriter.hpp>
 #include <pdal/NullWriter.hpp>
@@ -51,7 +52,7 @@ using namespace rialto;
 
 InfoTool::InfoTool() :
     Tool(),
-    m_tileBounds(false)
+    m_tileInfo(false)
 {}
 
 
@@ -61,7 +62,7 @@ InfoTool::~InfoTool()
 
 void InfoTool::printUsage() const
 {
-    printf("Usage: $ rialto_info [-h/--help] [--tile bounds level col row] filename\n");
+    printf("Usage: $ rialto_info [-h/--help] [--tile level col row] filename\n");
     printf("where:\n");
     printf("  'filename' can be .las, .laz, or .gpkg\n");
 }
@@ -96,6 +97,20 @@ void InfoTool::run()
         const GpkgMatrixSet& ms = r->getMatrixSet();
         printf("Num dimensions: %d\n", ms.getNumDimensions());
         printf("Max level: %d\n", ms.getMaxLevel());
+    
+        if (m_tileInfo)
+        {
+            const GeoPackageReader& gpkg = r->getGeoPackageReader();
+            const uint32_t tileId = gpkg.queryForTileId(ms.getName(), m_tileLevel, m_tileColumn, m_tileRow);
+            if (tileId == -1)
+            {
+                error("specified tile not found");
+            }
+            GpkgTile tileInfo;
+            gpkg.readTile(ms.getName(), tileId, false, tileInfo);
+            printf("  tile (%u,%u,%u) info:\n", m_tileLevel, m_tileColumn, m_tileRow);
+            printf("     num points: %u\n", tileInfo.getNumPoints());
+        }
     }
     else
     {
@@ -116,12 +131,12 @@ bool InfoTool::l_processOptions(int argc, char* argv[])
         {
             return false;
         }
-        else if (streq(argv[i], "--bounds"))
+        else if (streq(argv[i], "--tile"))
         {
-            m_tileBounds = true;
-            m_tileLevel = argv[++i];
-            m_tileColumn = argv[++i];
-            m_tileRow = argv[++i];
+            m_tileInfo = true;
+            m_tileLevel = atoi(argv[++i]);
+            m_tileColumn = atoi(argv[++i]);
+            m_tileRow = atoi(argv[++i]);
         }
         m_inputName = std::string(argv[i]);
 

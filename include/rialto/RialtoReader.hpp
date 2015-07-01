@@ -59,6 +59,7 @@ public:
     Options getDefaultOptions();
 
     const GpkgMatrixSet& getMatrixSet() const { return *m_matrixSet; }
+    const GeoPackageReader& getGeoPackageReader() const { return *m_gpkg; }
     
 private:
     void processOptions(const Options& options);

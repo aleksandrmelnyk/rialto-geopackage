@@ -167,6 +167,36 @@ void GeoPackageReader::readTileIdsAtLevel(std::string const& name, uint32_t leve
 }
 
 
+uint32_t GeoPackageReader::queryForTileId(std::string const& name,
+                                          uint32_t levelNum,
+                                          uint32_t columnNum,
+                                          uint32_t rowNum) const
+{
+    if (!m_sqlite)
+    {
+        throw pdal_error("RialtoDB: invalid state (session does exist)");
+    }
+
+    log()->get(LogLevel::Debug) << "Querying tile set " << name
+                                << " for a tile id" << std::endl;
+    std::ostringstream oss;
+    oss << "SELECT id FROM '" << name << "'"
+        << " WHERE zoom_level=" << levelNum
+        << " AND tile_column = " << columnNum
+        << " AND tile_row <= " << rowNum;
+
+    m_sqlite->query(oss.str());
+
+    const row* r = m_sqlite->get();
+    if (!r) return -1;
+
+    uint32_t id = boost::lexical_cast<uint32_t>(r->at(0).data);
+    log()->get(LogLevel::Debug) << "  got tile id=" << id << std::endl;
+
+    return id;
+}
+
+
 void GeoPackageReader::queryForTileIds(std::string const& name,
                                double minx, double miny,
                                double maxx, double maxy,

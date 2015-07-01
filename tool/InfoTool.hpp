@@ -50,7 +50,7 @@ protected:
     void printUsage() const;
 
 private:
-    bool m_tileBounds;
+    bool m_tileInfo;
     uint32_t m_tileLevel;
     uint32_t m_tileColumn;
     uint32_t m_tileRow;
