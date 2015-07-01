@@ -48,7 +48,7 @@ tester "verify generated geopackage" \
     "Num dimensions: 16"
 
 tester "translate generated geopackage to las" \
-    "$xlat -i $tmpdir/a.gpkg -o $tmpdir/a.las -maxlevel 0" \
+    "$xlat -i $tmpdir/a.gpkg -o $tmpdir/a.las --maxlevel 0" \
     "Points processed: 326511"
 
 tester "verify generated las (point count)" \
@@ -59,14 +59,14 @@ tester "verify generated las (point length)"\
     "$info $tmpdir/a.las" \
     "Point length (bytes): 34"
 
-tester "check if translate -maxlevel works for las to gpkg" \
-    "$xlat -i $datadir/serp-small.las -o $tmpdir/a.gpkg -maxlevel 7" \
+tester "check if translate --maxlevel works for las to gpkg" \
+    "$xlat -i $datadir/serp-small.las -o $tmpdir/a.gpkg --maxlevel 7" \
     "Points processed: 326511"
 
-tester "verify generated geopackage for -maxlevel" \
+tester "verify generated geopackage for --maxlevel" \
     "$info $tmpdir/a.gpkg" \
     "Max level: 7"
 
-tester "check if translate -verify works for las to gpkg" \
-    "$xlat -i $datadir/serp-small.las -o $tmpdir/a.gpkg -verify" \
+tester "check if translate --verify works for las to gpkg" \
+    "$xlat -i $datadir/serp-small.las -o $tmpdir/a.gpkg --verify" \
     "Points processed: 326511"
