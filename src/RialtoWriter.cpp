@@ -35,7 +35,7 @@
 #include <rialto/RialtoWriter.hpp>
 #include <rialto/GeoPackageWriter.hpp>
 #include <rialto/GeoPackageCommon.hpp>
-#include "ViewTileCommon.hpp"
+#include "WritableTileCommon.hpp"
 
 
 static PluginInfo const s_info = PluginInfo(
@@ -138,29 +138,29 @@ void RialtoWriter::write(const PointViewPtr inView)
     // TODO: doesn't support being called more than once, e.g.
     // for a set of PointViews
                   
-    ViewTileSet viewTileSet(m_maxLevel, 
+    WritableTileSet tileSet(m_maxLevel, 
                             m_tms_minx, m_tms_miny, m_tms_maxx, m_tms_maxy,
                             m_numColsAtL0, m_numRowsAtL0,
                             log());
 
     PointViewSet outViews;
-    viewTileSet.build(inView, &outViews);
+    tileSet.build(inView, &outViews);
 
     m_gpkg->beginTransaction();
     
-    writeAllTiles(viewTileSet);
+    writeAllTiles(tileSet);
     
     m_gpkg->commitTransaction();
 }
 
 
-void RialtoWriter::writeAllTiles(ViewTileSet& viewTileSet)
+void RialtoWriter::writeAllTiles(WritableTileSet& tileSet)
 {
-    const int numTiles = viewTileSet.getViewTiles().size();
+    const int numTiles = tileSet.getTiles().size();
 
     HeartBeat hb(numTiles, 50, 100);
 
-    for (auto tile: viewTileSet.getViewTiles())
+    for (auto tile: tileSet.getTiles())
     {
         assert(tile != NULL);
         PointView* pv = tile->getPointView().get();

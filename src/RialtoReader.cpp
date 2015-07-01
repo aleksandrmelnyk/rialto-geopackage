@@ -35,7 +35,7 @@
 #include <rialto/RialtoReader.hpp>
 #include <rialto/GeoPackageReader.hpp>
 #include <rialto/GeoPackageCommon.hpp>
-#include "ViewTileCommon.hpp"
+#include "WritableTileCommon.hpp"
 #include "TileMath.hpp"
 
 

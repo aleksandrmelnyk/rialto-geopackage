@@ -10,7 +10,7 @@ srcs = Split("""
     GeoPackageManager.cpp
     RialtoWriter.cpp
     GeoPackageReader.cpp
-    ViewTileCommon.cpp
+    WritableTileCommon.cpp
     """)
 
 cpppath = Split(env.subst("""

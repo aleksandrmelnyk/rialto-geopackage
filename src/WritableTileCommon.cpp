@@ -32,7 +32,7 @@
 * OF SUCH DAMAGE.
 ****************************************************************************/
 
-#include "ViewTileCommon.hpp"
+#include "WritableTileCommon.hpp"
 #include "TileMath.hpp"
 #include <rialto/Event.hpp>
 
@@ -40,7 +40,7 @@ namespace rialto
 {
 
 
-ViewTileSet::ViewTileSet(
+WritableTileSet::WritableTileSet(
         uint32_t maxLevel,
         double minx, double miny,
         double maxx, double maxy,
@@ -55,21 +55,21 @@ ViewTileSet::ViewTileSet(
 {
     m_tmm = std::unique_ptr<TileMath>(new TileMath(minx, miny, maxx, maxy, numColsAtL0, numRowsAtL0));
 
-    m_roots = new ViewTile**[numColsAtL0];
+    m_roots = new WritableTile**[numColsAtL0];
 
     for (uint32_t c=0; c<numColsAtL0; c++)
     {
-        m_roots[c] = new ViewTile*[numRowsAtL0];
+        m_roots[c] = new WritableTile*[numRowsAtL0];
         for (uint32_t r=0; r<numRowsAtL0; r++)
         {
-            m_roots[c][r] = new ViewTile(*this, 0, c, r);
+            m_roots[c][r] = new WritableTile(*this, 0, c, r);
             m_allTiles.push_back(m_roots[c][r]);
         }
     }
 }
 
 
-ViewTileSet::~ViewTileSet()
+WritableTileSet::~WritableTileSet()
 {
     if (m_roots) {
         const uint32_t numCols = m_tmm->numColsAtLevel(0);
@@ -88,7 +88,7 @@ ViewTileSet::~ViewTileSet()
 }
 
 
-void ViewTileSet::build(PointViewPtr sourceView, PointViewSet* outputSet)
+void WritableTileSet::build(PointViewPtr sourceView, PointViewSet* outputSet)
 {
     m_sourceView = sourceView;
     m_outputSet = outputSet;
@@ -115,7 +115,7 @@ void ViewTileSet::build(PointViewPtr sourceView, PointViewSet* outputSet)
             {
                 if (m_tmm->tileContains(c, r, 0, x, y))
                 {
-                  ViewTile* tile = m_roots[c][r];
+                  WritableTile* tile = m_roots[c][r];
                     tile->add(m_sourceView, idx, x, y);
                     added = true;
                     break;
@@ -135,7 +135,7 @@ void ViewTileSet::build(PointViewPtr sourceView, PointViewSet* outputSet)
     {
         for (uint32_t r=0; r<numRows; r++)
         {
-            ViewTile* tile = m_roots[c][r];
+            WritableTile* tile = m_roots[c][r];
             tile->setMask();
         }
     }
@@ -143,7 +143,7 @@ void ViewTileSet::build(PointViewPtr sourceView, PointViewSet* outputSet)
 
 
 
-PointViewPtr ViewTileSet::createPointView()
+PointViewPtr WritableTileSet::createPointView()
 {
     PointViewPtr p = m_sourceView->makeNew();
     m_outputSet->insert(p);
@@ -152,7 +152,7 @@ PointViewPtr ViewTileSet::createPointView()
 }
 
 
-ViewTile::ViewTile(ViewTileSet& tileSet,
+WritableTile::WritableTile(WritableTileSet& tileSet,
         uint32_t level,
         uint32_t column,
         uint32_t row) :
@@ -197,7 +197,7 @@ ViewTile::ViewTile(ViewTileSet& tileSet,
 }
 
 
-ViewTile::~ViewTile()
+WritableTile::~WritableTile()
 {
     if (m_children != NULL)
     {
@@ -213,7 +213,7 @@ ViewTile::~ViewTile()
 }
 
 
-void ViewTile::setMask()
+void WritableTile::setMask()
 {
   // child mask
   m_mask = 0x0;
@@ -240,7 +240,7 @@ void ViewTile::setMask()
 // point, where N is based on the level.
 //
 // If we're not a leaf tile, add the node to one of our child tiles.
-void ViewTile::add(PointViewPtr sourcePointView, PointId pointNumber, double x, double y)
+void WritableTile::add(PointViewPtr sourcePointView, PointId pointNumber, double x, double y)
 {
     //log()->get(LogLevel::Debug5) << "-- -- " << pointNumber
         //<< " " << m_skip
@@ -261,7 +261,7 @@ void ViewTile::add(PointViewPtr sourcePointView, PointId pointNumber, double x, 
 
     if (!m_children)
     {
-        m_children = new ViewTile*[4];
+        m_children = new WritableTile*[4];
         m_children[0] = NULL;
         m_children[1] = NULL;
         m_children[2] = NULL;
@@ -277,8 +277,8 @@ void ViewTile::add(PointViewPtr sourcePointView, PointId pointNumber, double x, 
     {
         uint32_t childCol, childRow;
         tmm.getChildOfTile(m_column, m_row, q, childCol, childRow);
-        m_children[q] = new ViewTile(m_tileSet, m_level+1, childCol, childRow);
-        m_tileSet.getViewTilesRef().push_back(m_children[q]);
+        m_children[q] = new WritableTile(m_tileSet, m_level+1, childCol, childRow);
+        m_tileSet.getTilesRef().push_back(m_children[q]);
     }
 
     m_children[q]->add(sourcePointView, pointNumber, x, y);

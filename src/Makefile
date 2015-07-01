@@ -8,7 +8,7 @@ LDFLAGS=-shared -L$(INSTALL_DIR)/lib
 CC=c++
 
 OBJS=obj/Event.o obj/GeoPackage.o obj/GeoPackageReader.o obj/RialtoWriter.o \
-obj/GeoPackageCommon.o obj/GeoPackageWriter.o obj/ViewTileCommon.o \
+obj/GeoPackageCommon.o obj/GeoPackageWriter.o obj/WritableTileCommon.o \
 obj/GeoPackageManager.o obj/RialtoReader.o 
 
 DEPS=\
@@ -22,7 +22,7 @@ DEPS=\
 ../include/rialto/RialtoWriter.hpp \
 ./SQLiteCommon.hpp \
 ./TileMath.hpp \
-./ViewTileCommon.hpp
+./WritableTileCommon.hpp
 
 all: obj/librialto.so
 

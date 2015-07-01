@@ -42,19 +42,19 @@ namespace rialto
     using namespace pdal;
 
 
-class ViewTile;
+class WritableTile;
 class TileMath;
 
 // the tile set holds all the tiles that make up the tile matrix
-class ViewTileSet
+class WritableTileSet
 {
   public:
-      ViewTileSet(uint32_t maxLevel,
+      WritableTileSet(uint32_t maxLevel,
               double minx, double miny,
               double maxx, double maxy,
               uint32_t numColsAtL0, uint32_t numRowsAtL0,
               LogPtr log);
-      ~ViewTileSet();
+      ~WritableTileSet();
 
       void build(PointViewPtr sourceView, PointViewSet* outputSet);
 
@@ -67,18 +67,18 @@ class ViewTileSet
 
       const TileMath& tmm() const { return *m_tmm; }
 
-      const std::vector<ViewTile*>& getViewTiles() const { return m_allTiles; }
-      std::vector<ViewTile*>& getViewTilesRef() { return m_allTiles; }
+      const std::vector<WritableTile*>& getTiles() const { return m_allTiles; }
+      std::vector<WritableTile*>& getTilesRef() { return m_allTiles; }
 
   private:
       PointViewPtr m_sourceView;
       PointViewSet* m_outputSet;
       uint32_t m_maxLevel;
       LogPtr m_log;
-      ViewTile*** m_roots;
+      WritableTile*** m_roots;
       uint32_t m_tileId;
       std::unique_ptr<TileMath> m_tmm;
-      std::vector<ViewTile*> m_allTiles;
+      std::vector<WritableTile*> m_allTiles;
 };
 
 
@@ -87,11 +87,11 @@ class ViewTileSet
 // Tiles are identified by level, column (x), and row (y)
 // A tile may contain points; if so, m_pointView will be set.
 // A tile may have 0..3 children.
-class ViewTile
+class WritableTile
 {
 public:
-    ViewTile(ViewTileSet& tileSet, uint32_t level, uint32_t column, uint32_t row);
-    ~ViewTile();
+    WritableTile(WritableTileSet& tileSet, uint32_t level, uint32_t column, uint32_t row);
+    ~WritableTile();
 
     void add(PointViewPtr pointView, PointId pointNumber, double lon, double lat);
     void setMask();
@@ -112,8 +112,8 @@ private:
     uint32_t m_row;
     uint32_t m_mask;
     uint32_t m_id;
-    ViewTileSet& m_tileSet;
-    ViewTile** m_children;
+    WritableTileSet& m_tileSet;
+    WritableTile** m_children;
     uint64_t m_skip;
 };
 

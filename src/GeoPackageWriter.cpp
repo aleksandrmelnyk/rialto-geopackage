@@ -36,7 +36,7 @@
 #include <rialto/GeoPackageCommon.hpp>
 
 #include "SQLiteCommon.hpp"
-#include "ViewTileCommon.hpp"
+#include "WritableTileCommon.hpp"
 #include "TileMath.hpp"
 
 namespace rialto

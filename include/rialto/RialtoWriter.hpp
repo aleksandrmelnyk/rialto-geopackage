@@ -46,7 +46,7 @@ namespace rialto
     using namespace pdal;
 
     class GeoPackageWriter;
-    class ViewTileSet;
+    class WritableTileSet;
 
 class PDAL_DLL RialtoWriter : public Writer
 {
@@ -66,7 +66,7 @@ public:
 
 private:
     void startWrite(PointTableRef table, const SpatialReference& srs);
-    void writeAllTiles(ViewTileSet& viewTileSet);
+    void writeAllTiles(WritableTileSet& tileSet);
     void writeTile(PointView*,
                    uint32_t level, uint32_t col, uint32_t row,
                    uint32_t mask);
