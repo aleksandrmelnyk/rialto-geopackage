@@ -195,7 +195,8 @@ point_count_t RialtoReader::read(PointViewPtr view, point_count_t /*not used*/)
 
         doQuery(tmm, info, view, qMinX, qMinY, qMaxX, qMaxY);
         
-        log()->get(LogLevel::Debug) << "  view now has this many: " << view->size() << std::endl;
+        log()->get(LogLevel::Debug) << "  resulting view now has "
+            << view->size() << " points" << std::endl;
     } while (m_gpkg->queryForTiles_next());
 
     return view->size();
@@ -203,24 +204,31 @@ point_count_t RialtoReader::read(PointViewPtr view, point_count_t /*not used*/)
 
 
 void RialtoReader::doQuery(const TileMath& tmm,
-                           const GpkgTile& info,
+                           const GpkgTile& tile,
                            PointViewPtr view,
                            double qMinX, double qMinY, double qMaxX, double qMaxY)
 {
+    const uint32_t level = tile.getLevel();
+    const uint32_t column = tile.getColumn();
+    const uint32_t row = tile.getRow();
+    const uint32_t numPoints = tile.getNumPoints();
+    
     // if this tile is entirely inside the query box, then
     // we won't need to check each point
     double tileMinX, tileMinY, tileMaxX, tileMaxY;
-    tmm.getTileBounds(info.getColumn(), info.getRow(), info.getLevel(),
+    tmm.getTileBounds(column, row, level,
                       tileMinX, tileMinY, tileMaxX, tileMaxY);
     const bool tileEntirelyInsideQueryBox =
         tmm.rectContainsRect(qMinX, qMinY, qMaxX, qMaxY,
                              tileMinX, tileMinY, tileMaxX, tileMaxY);
 
-    log()->get(LogLevel::Debug) << "  got some points: " << info.getNumPoints() << std::endl;
+    log()->get(LogLevel::Debug) << "  intersecting tile "
+        << "(" << level << "," << column << "," << row << ")" 
+        << " contains " << numPoints << " points" << std::endl;
 
     PointViewPtr tempView = view->makeNew();
 
-    GpkgTile::exportToPV(info.getNumPoints(), tempView, info.getBlob());
+    GpkgTile::exportToPV(numPoints, tempView, tile.getBlob());
 
     for (uint32_t i=0; i<tempView->size(); i++) {
         const double x = tempView->getFieldAs<double>(Dimension::Id::X, i);
