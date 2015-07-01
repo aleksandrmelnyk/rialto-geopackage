@@ -65,13 +65,14 @@ from struct import pack
 class MyDatabase:
     connection = None
     connection_filename = ""
+    log_message = None
 
     def __init__(self):
         self.connection = None
         self.connection_filename = ""
     
     def _error(self, e):
-        print "Error %s:" % e.args[0]
+        self.log_message("Error %s:" % e.args[0])
         self.close()
         return None
 
@@ -82,7 +83,7 @@ class MyDatabase:
             return None
         db = MyDatabase()
         ok = db._open(filename)
-        if not ok:
+        if ok is None:
             return None
         return db
 
@@ -91,7 +92,7 @@ class MyDatabase:
             return True
         self.close() # just in case
         try:
-            self.connection = sqlite3.connect("file:" + filename + "?mode=ro")
+            self.connection = sqlite3.connect(filename)
         except sqlite3.Error, e:
             return self._error(e)
         self.connection_filename = filename
@@ -103,10 +104,8 @@ class MyDatabase:
             self.connection = None
         self.connection_filename = ""
         
-    def list_tables(self, reqhandler):
+    def list_tables(self):
         resp = list()
-
-        reqhandler.log_message("list_tables: %s" % self.connection_filename)
 
         try:
             cursor = self.connection.cursor()
@@ -116,9 +115,8 @@ class MyDatabase:
                 if row == None:
                     break
                 resp.append(row[0])
-                reqhandler.log_message("list_tables got one: %s" % row[0])
+
         except sqlite3.Error, e:
-            reqhandler.log_message("list_tables failed")
             return self._error(e)
 
         return resp
@@ -187,28 +185,24 @@ class MyDatabase:
         mask = None
         numPoints = None
                 
-        #print("Blob query: %s,%s,%s" % (level, x, y))
-                
         try:                    
             cursor = self.connection.cursor()
             sql = "SELECT tile_data,num_points,child_mask FROM %s WHERE zoom_level=%s AND tile_column=%s AND tile_row=%s" % (table, level, x, y)    
             cursor.execute(sql)
-                    
-            while True:
-                row = cursor.fetchone()
-                if row == None:
-                    break
-                resp = row[0]
-                numPoints = row[1]
-                mask = row[2]
+
+            row = cursor.fetchone()
+            if row == None:
+                return  None
+            resp = row[0]
+            numPoints = row[1]
+            mask = row[2]
                         
         except sqlite3.Error, e:
             return self._error(e)
                 
         if resp == None:
             return None
-                
-        #print("done: %s,%s,%s" % (len(resp), numPoints, mask))
+
         return (resp, numPoints, mask)
 
 ##
@@ -223,7 +217,7 @@ class MyThread(threading.Thread):
 
     def _open_database(self, rootdir, dbname):        
         self.my_db = MyDatabase.open(rootdir + sep + dbname + ".gpkg")
-        if not self.my_db:
+        if self.my_db is None:
             return None
         return True
 
@@ -235,21 +229,20 @@ class MyThread(threading.Thread):
         names = [os.path.splitext(f)[0] for f in basenames]
         return names    
     
-    def list_tables(self, rootdir, dbname, reqhandler):
+    def list_tables(self, rootdir, dbname):
         ok = self._open_database(rootdir, dbname)
-        if not ok:
-            reqhandler.log_message("list_tables failed: %s %s" % (rootdir, dbname))
+        if ok is None:
             return None
-        return self.my_db.list_tables(reqhandler)
+        return self.my_db.list_tables()
 
     def get_info(self, rootdir, dbname, tablename):
         ok = self._open_database(rootdir, dbname)
-        if not ok: return None
+        if ok is None: return None
         return self.my_db.get_info(dbname, tablename)
 
     def get_blob(self, rootdir, dbname, tablename, level, x, y):
         ok = self._open_database(rootdir, dbname)
-        if not ok: return None
+        if ok is None: return None
         return self.my_db.get_blob(tablename, level, x, y)
 
 
@@ -314,8 +307,9 @@ class MyHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
     def _get_databases(self, rootdir):
         me = threading.current_thread()
+        me.log_message = self.log_message
         files = me.get_databases(rootdir)
-        if not files:
+        if files is None:
             self._send404("databases query failed")
         self.send_response(200)
         self.send_header("Content-type", "application/json")
@@ -324,10 +318,10 @@ class MyHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         self.wfile.write(json.dumps(files, sort_keys=True, indent=4))
 
     def _get_tables(self, rootdir, dbname):
-        self.log_message("_get_tables: %s %s" % (rootdir, dbname))
         me = threading.current_thread()
-        tables = me.list_tables(rootdir, dbname, self)
-        if not tables:
+        me.log_message = self.log_message
+        tables = me.list_tables(rootdir, dbname)
+        if tables is None:
             self._send404("table query failed")
             return
         self.send_response(200)
@@ -338,8 +332,9 @@ class MyHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
     def _get_info(self, rootdir, dbname, tablename):
         me = threading.current_thread()
+        me.log_message = self.log_message
         info = me.get_info(rootdir, dbname, tablename)
-        if not info:
+        if info is None:
             self._send404("info query failed")
             return
         self.send_response(200)
@@ -350,8 +345,9 @@ class MyHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
     def _get_blob(self, rootdir, dbname, tablename, level, col, row):
         me = threading.current_thread()
+        me.log_message = self.log_message
         results = me.get_blob(rootdir, dbname, tablename, level, col, row)
-        if not results:
+        if results is None:
             # tile does not exist (and therefore has no point data)
             self.send_response(200)
             self.send_header("Content-type", "application/octet-stream")
@@ -360,7 +356,6 @@ class MyHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
             self.wfile.write(pack('<II', 0, 0))
             return
 
-        #print("sending blob on " + threading.current_thread().name)
         (blob, numPoints, mask) = results
         self.send_response(200)
         self.send_header("Content-type", "application/octet-stream")
@@ -369,9 +364,7 @@ class MyHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         self.wfile.write(pack('<II', numPoints, mask))
         self.wfile.write(blob)
 
-    def do_GET(self):
-        """Respond to a GET request."""
-        
+    def do_GET(self):        
         parts = [i for i in self.path.split(sep) if i != '']
         
         if (len(parts) == 0):
