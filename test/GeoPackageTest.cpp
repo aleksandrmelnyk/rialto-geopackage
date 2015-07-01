@@ -45,27 +45,37 @@ TEST(GeoPackageTest, test1)
 
     FileUtils::deleteFile(filename);
 
+    EXPECT_FALSE(FileUtils::fileExists(filename));
+
     LogPtr log(new Log("rialtodbwritertest", "stdout"));
+    //log->setLevel(LogLevel::Debug);
 
     {
-        GeoPackageManager db(filename, log);
-        db.open();
-        db.close();
+        GeoPackageManager db1(filename, log);
+        db1.open();
+        db1.close();
     }
 
     EXPECT_TRUE(FileUtils::fileExists(filename));
 
     {
-        GeoPackageWriter db(filename, log);
-        db.open();
-        db.close();
+        GeoPackageWriter db2(filename, log);
+        db2.open();
+        log->get(LogLevel::Debug) << "HERE" << std::endl;
+        db2.close();
     }
+
+    EXPECT_TRUE(FileUtils::fileExists(filename));
 
     {
-        GeoPackageReader db(filename, log);
-        db.open();
-        db.close();
+        GeoPackageReader db3(filename, log);
+        db3.open();
+        db3.close();
     }
 
+    EXPECT_TRUE(FileUtils::fileExists(filename));
+
     FileUtils::deleteFile(filename);
+
+    EXPECT_FALSE(FileUtils::fileExists(filename));
 }

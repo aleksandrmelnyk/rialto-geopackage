@@ -274,6 +274,7 @@ TEST(RialtoWriterTest, testWriter)
 }
 
 
+#if 0
 TEST(RialtoWriterTest, existing_table_name)
 {
     const std::string filename(Support::temppath("samename.gpkg"));
@@ -421,6 +422,7 @@ TEST(RialtoWriterTest, two_tables)
         EXPECT_THROW(reader.prepare(table), pdal_error);
     }
 }
+#endif
 
 
 TEST(RialtoWriterTest, las_metadata)

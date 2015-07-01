@@ -41,24 +41,28 @@
 namespace rialto
 {
 
-GeoPackageReader::GeoPackageReader(const std::string& connection, LogPtr log) :
-    GeoPackage(connection, log),
+GeoPackageReader::GeoPackageReader(const std::string& connection, LogPtr mylog) :
+    GeoPackage(connection, mylog),
     m_srid(4326),
     e_tilesRead("tilesRead"),
     e_tileTablesRead("tileTablesRead"),
     e_queries("queries"),
     m_numPointsRead(0)
 {
+    log()->get(LogLevel::Debug) << "GeoPackageReader::GeoPackageReader" << std::endl;
 }
 
 
 GeoPackageReader::~GeoPackageReader()
 {
+    log()->get(LogLevel::Debug) << "GeoPackageReader::~GeoPackageReader" << std::endl;
 }
 
 
 void GeoPackageReader::open()
 {
+    log()->get(LogLevel::Debug) << "GeoPackageReader::open" << std::endl;
+
     internalOpen(false);
 
     verifyTableExists("gpkg_spatial_ref_sys");
@@ -73,6 +77,8 @@ void GeoPackageReader::open()
 
 void GeoPackageReader::close()
 {
+    log()->get(LogLevel::Debug) << "GeoPackageReader::close" << std::endl;
+
     internalClose();
     //dumpStats();
 }

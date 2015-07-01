@@ -43,21 +43,25 @@
 namespace rialto
 {
 
-GeoPackageManager::GeoPackageManager(const std::string& connection, LogPtr log) :
-    GeoPackage(connection, log),
+GeoPackageManager::GeoPackageManager(const std::string& connection, LogPtr mylog) :
+    GeoPackage(connection, mylog),
     e_creationOpen("creationOpen"),
     e_creationClose("creationClose")
 {
+    log()->get(LogLevel::Debug) << "GeoPackageManager::GeoPackageManager" << std::endl;
 }
 
 
 GeoPackageManager::~GeoPackageManager()
 {
+    log()->get(LogLevel::Debug) << "GeoPackageManager::~GeoPackageManager" << std::endl;
 }
 
 
 void GeoPackageManager::open()
 {
+    log()->get(LogLevel::Debug) << "GeoPackageManager::open" << std::endl;
+
     e_creationOpen.start();
 
     internalOpen(true);
@@ -81,6 +85,8 @@ void GeoPackageManager::open()
 
 void GeoPackageManager::close()
 {
+    log()->get(LogLevel::Debug) << "GeoPackageManager::close" << std::endl;
+
     e_creationClose.start();
 
     internalClose();

@@ -35,6 +35,7 @@
 #include <rialto/GeoPackage.hpp>
 
 #include <rialto/GeoPackageCommon.hpp>
+#include <rialto/GeoPackageManager.hpp>
 #include "SQLiteCommon.hpp"
 
 namespace rialto
@@ -52,30 +53,41 @@ GeoPackage::GeoPackage(const std::string& connection, LogPtr log) :
     e_srsQueries("srsQueries")
 
 {
-    //m_log->setLevel(LogLevel::Debug);
+    m_log->get(LogLevel::Debug) << "GeoPackage::GeoPackage" << std::endl;
 }
 
 
 GeoPackage::~GeoPackage()
 {
+    log()->get(LogLevel::Debug) << "~GeoPackage" << std::endl;
     assert(!m_sqlite);
-
-    log()->get(LogLevel::Debug) << "~RialtoDB" << std::endl;
 }
 
 
 void GeoPackage::internalOpen(bool writable)
 {
+    log()->get(LogLevel::Debug) << "GeoPackage::internalOpen" << std::endl;
+
     if (m_sqlite)
     {
-        throw pdal_error("RialtoDB: invalid state (session already exists)");
+        throw pdal_error("GeoPackage: invalid state (session already exists)");
     }
 
-    log()->get(LogLevel::Debug) << "RialtoDB::create()" << std::endl;
-
-    if (!writable && !FileUtils::fileExists(m_connection))
+    const bool fileExists = FileUtils::fileExists(m_connection);
+    if (!writable && !fileExists)
     {
-      throw pdal_error("RialtoDb: does not exist");
+        throw pdal_error("GeoPackage: does not exist");
+    }
+    else if (writable && fileExists)
+    {
+        FileUtils::deleteFile(m_connection);
+        GeoPackageManager db(m_connection, log());
+        db.open();
+        db.close();
+        if (!FileUtils::fileExists(m_connection))
+        {
+            throw pdal_error("GeoPackage: unable to initialize empty file");
+        }
     }
 
     m_sqlite = std::unique_ptr<SQLite>(new SQLite(m_connection, m_log));
@@ -85,9 +97,11 @@ void GeoPackage::internalOpen(bool writable)
 
 void GeoPackage::internalClose()
 {
+    log()->get(LogLevel::Debug) << "GeoPackage::internalClose" << std::endl;
+
     if (!m_sqlite)
     {
-        throw pdal_error("RialtoDB: invalid state (session does exist)");
+        throw pdal_error("GeoPackage: invalid state (session does exist)");
     }
 
     m_sqlite.reset();
@@ -98,7 +112,7 @@ uint32_t GeoPackage::querySrsId(const std::string& wkt) const
 {
     if (!m_sqlite)
     {
-        throw pdal_error("RialtoDB: invalid state (session does exist)");
+        throw pdal_error("GeoPackage: invalid state (session does exist)");
     }
 
     e_srsQueries.start();
@@ -180,7 +194,7 @@ void GeoPackage::readMatrixSet(std::string const& name, GpkgMatrixSet& info) con
 {
     if (!m_sqlite)
     {
-        throw pdal_error("RialtoDB: invalid state (session does exist)");
+        throw pdal_error("GeoPackage: invalid state (session does exist)");
     }
 
     e_readMatrixSet.start();
@@ -339,7 +353,7 @@ void GeoPackage::readMatrixSetNames(std::vector<std::string>& names) const
 {
     if (!m_sqlite)
     {
-        throw pdal_error("RialtoDB: invalid state (session does exist)");
+        throw pdal_error("GeoPackage: invalid state (session does exist)");
     }
 
     const std::string sql("SELECT table_name FROM gpkg_contents WHERE data_type = 'pctiles'");
@@ -367,7 +381,7 @@ void GeoPackage::readMatrixSets(std::vector<GpkgMatrixSet>& infos) const
 {
     if (!m_sqlite)
     {
-        throw pdal_error("RialtoDB: invalid state (session does exist)");
+        throw pdal_error("GeoPackage: invalid state (session does exist)");
     }
 
     // first get all the table names
@@ -389,7 +403,7 @@ void GeoPackage::readDimensions(std::string const& name, std::vector<GpkgDimensi
 {
     if (!m_sqlite)
     {
-        throw pdal_error("RialtoDB: invalid state (session does exist)");
+        throw pdal_error("GeoPackage: invalid state (session does exist)");
     }
 
     dimensionsInfo.clear();

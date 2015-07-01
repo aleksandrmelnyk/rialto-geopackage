@@ -43,8 +43,8 @@ namespace rialto
 {
 
 
-GeoPackageWriter::GeoPackageWriter(const std::string& connection, LogPtr log) :
-    GeoPackage(connection, log),
+GeoPackageWriter::GeoPackageWriter(const std::string& connection, LogPtr mylog) :
+    GeoPackage(connection, mylog),
     m_srid(4326),
     m_needsIndexing(false),
     e_tilesWritten("tilesWritten"),
@@ -52,16 +52,19 @@ GeoPackageWriter::GeoPackageWriter(const std::string& connection, LogPtr log) :
     e_queries("queries"),
     m_numPointsWritten(0)
 {
+    log()->get(LogLevel::Debug) << "GeoPackageWriter::GeoPackageWriter" << std::endl;
 }
 
 
 GeoPackageWriter::~GeoPackageWriter()
 {
+    log()->get(LogLevel::Debug) << "GeoPackageWriter::~GeoPackageWriter" << std::endl;
 }
 
 
 void GeoPackageWriter::open()
 {
+    log()->get(LogLevel::Debug) << "GeoPackageWriter::open" << std::endl;
     internalOpen(true);
 
     verifyTableExists("gpkg_spatial_ref_sys");
@@ -77,6 +80,7 @@ void GeoPackageWriter::open()
 
 void GeoPackageWriter::close()
 {
+    log()->get(LogLevel::Debug) << "GeoPackageWriter::close" << std::endl;
     internalClose();
     //dumpStats();
 }
