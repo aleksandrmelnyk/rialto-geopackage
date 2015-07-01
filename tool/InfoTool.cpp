@@ -46,6 +46,8 @@
 #include <pdal/LasWriter.hpp>
 #include <pdal/ReprojectionFilter.hpp>
 
+#include "../src/TileMath.hpp"
+
 using namespace pdal;
 using namespace rialto;
 
@@ -110,6 +112,16 @@ void InfoTool::run()
             gpkg.readTile(ms.getName(), tileId, false, tileInfo);
             printf("  tile (%u,%u,%u) info:\n", m_tileLevel, m_tileColumn, m_tileRow);
             printf("     num points: %u\n", tileInfo.getNumPoints());
+            
+            const TileMath tmm(ms.getTmsetMinX(), ms.getTmsetMinY(),
+                               ms.getTmsetMaxX(), ms.getTmsetMaxY(),
+                               ms.getNumColsAtL0(), ms.getNumRowsAtL0());
+            double minx, miny, maxx, maxy;
+            tmm.getTileBounds(m_tileLevel, m_tileColumn, m_tileRow,
+                              minx, miny, maxx, maxy);
+            printf("    tile bounds minx, miny: %f, %f\n", minx, miny);
+            printf("                maxx, maxy: %f, %f\n", maxx, maxy);
+
         }
     }
     else

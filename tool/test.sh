@@ -47,6 +47,10 @@ tester "verify generated geopackage" \
     "$info $tmpdir/a.gpkg" \
     "Num dimensions: 16"
 
+tester "verify generated geopackage for --tile" \
+    "$info --tile 0 0 0 $tmpdir/a.gpkg" \
+    "maxx, maxy: 0.000000, 90.000000"
+
 tester "translate generated geopackage to las" \
     "$xlat -i $tmpdir/a.gpkg -o $tmpdir/a.las --maxlevel 0" \
     "Points processed: 326511"
