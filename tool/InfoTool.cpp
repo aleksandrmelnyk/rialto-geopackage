@@ -50,7 +50,8 @@ using namespace rialto;
 
 
 InfoTool::InfoTool() :
-    Tool()
+    Tool(),
+    m_tileBounds(false)
 {}
 
 
@@ -60,7 +61,7 @@ InfoTool::~InfoTool()
 
 void InfoTool::printUsage() const
 {
-    printf("Usage: $ rialto_tool filename\n");
+    printf("Usage: $ rialto_info [-h/--help] [--tile bounds level col row] filename\n");
     printf("where:\n");
     printf("  'filename' can be .las, .laz, or .gpkg\n");
 }
@@ -111,11 +112,17 @@ bool InfoTool::l_processOptions(int argc, char* argv[])
 
     while (i < argc)
     {
-        if (streq(argv[i], "-h"))
+        if (streq(argv[i], "-h") || streq(argv[i], "--help"))
         {
             return false;
         }
-        
+        else if (streq(argv[i], "--bounds"))
+        {
+            m_tileBounds = true;
+            m_tileLevel = argv[++i];
+            m_tileColumn = argv[++i];
+            m_tileRow = argv[++i];
+        }
         m_inputName = std::string(argv[i]);
 
         ++i;

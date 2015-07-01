@@ -50,4 +50,8 @@ protected:
     void printUsage() const;
 
 private:
+    bool m_tileBounds;
+    uint32_t m_tileLevel;
+    uint32_t m_tileColumn;
+    uint32_t m_tileRow;
 };
