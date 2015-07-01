@@ -167,9 +167,9 @@ Stage* Tool::createReader(const std::string& name, FileType type)
 }
 
 
-Stage* Tool::createWriter(const std::string& name, FileType type, uint32_t maxLevel)
+Stage* Tool::createWriter(const std::string& fileName, FileType type, uint32_t maxLevel)
 {
-    FileUtils::deleteFile(name);
+    FileUtils::deleteFile(fileName);
 
     Options opts;
     Writer* writer = NULL;
@@ -177,24 +177,23 @@ Stage* Tool::createWriter(const std::string& name, FileType type, uint32_t maxLe
     switch (type)
     {
         case TypeLas:
-            opts.add("filename", name);
+            opts.add("filename", fileName);
             writer = new LasWriter();
             opts.add("compressed", false);
             break;
         case TypeLaz:
-            opts.add("filename", name);
+            opts.add("filename", fileName);
             writer = new LasWriter();
             opts.add("compressed", true);
             break;
         case TypeRialto:
             {
                 LogPtr log(new Log("rialtowritertest", "stdout"));
-                GeoPackageManager db(name, log);
+                GeoPackageManager db(fileName, log);
                 db.open();
                 db.close();
             }
-            opts.add("filename", name);
-            opts.add("name", "mytablename");
+            opts.add("filename", fileName);
             opts.add("numColsAtL0", 2);
             opts.add("numRowsAtL0", 1);
             opts.add("timestamp", "mytimestamp");

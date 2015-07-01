@@ -75,7 +75,7 @@ private:
     void updateDimensionStats(PointLayoutPtr layout);
     void processOptions(const Options& options);
 
-    std::string m_matrixSetName;
+    std::string m_dataset;
     uint32_t m_numColsAtL0;
     uint32_t m_numRowsAtL0;
     std::string m_description;

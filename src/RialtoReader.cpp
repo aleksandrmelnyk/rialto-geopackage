@@ -38,6 +38,8 @@
 #include "WritableTileCommon.hpp"
 #include "TileMath.hpp"
 
+#include <boost/filesystem.hpp>
+
 
 static PluginInfo const s_info = PluginInfo(
     "readers.rialto",
@@ -80,22 +82,7 @@ void RialtoReader::initialize()
 
         m_matrixSet = std::unique_ptr<GpkgMatrixSet>(new GpkgMatrixSet());
 
-        if (m_matrixSetName == "")
-        {
-            std::vector<std::string> names;
-            m_gpkg->readMatrixSetNames(names);
-            if (names.size() == 0)
-            {
-                throw pdal_error("geopackage has no tile matrix sets");
-            }
-            if (names.size() > 1)
-            {
-                throw pdal_error("tile matrix set name not specified in options list");
-            }
-            m_matrixSetName = names[0];
-        }
-
-        m_gpkg->readMatrixSet(m_matrixSetName, *m_matrixSet);
+        m_gpkg->readMatrixSet(m_dataset, *m_matrixSet);
         
         const SpatialReference srs(m_matrixSet->getWkt());
         setSpatialReference(srs);
@@ -121,7 +108,12 @@ void RialtoReader::processOptions(const Options& options)
     {
         // you can't change the filename or dataset name once we've opened the DB
         m_filename = options.getValueOrThrow<std::string>("filename");
-        m_matrixSetName = options.getValueOrDefault<std::string>("name", "");
+        m_dataset = options.getValueOrDefault<std::string>("dataset", "");
+    }
+
+    if (m_dataset == "")
+    {
+        m_dataset = boost::filesystem::path(m_filename).stem().string() + "_tiles";
     }
     
     m_queryBox = options.getValueOrDefault<BOX3D>("bounds", BOX3D());
@@ -185,7 +177,7 @@ point_count_t RialtoReader::read(PointViewPtr view, point_count_t /*not used*/)
 
     const uint32_t level = m_queryLevel;
 
-    m_gpkg->queryForTiles_begin(m_matrixSetName, qMinX, qMinY, qMaxX, qMaxY, level);
+    m_gpkg->queryForTiles_begin(m_dataset, qMinX, qMinY, qMaxX, qMaxY, level);
 
     GpkgTile info;
 

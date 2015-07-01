@@ -24,6 +24,7 @@ libpath = Split(env.subst("""
     """))
 
 libs = Split("""
+    boost_filesystem
     pdal_util
     pdalcpp
     sqlite3

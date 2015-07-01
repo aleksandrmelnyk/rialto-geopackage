@@ -27,7 +27,7 @@ DEPS=\
 all: obj/librialto.so
 
 obj/librialto.so: $(OBJS)
-	$(CC) $(LDFLAGS) -o $@ $^ -lsqlite3 -lpdalcpp -lpdal_util
+	$(CC) $(LDFLAGS) -o $@ $^ -lboost_filesystem -lsqlite3 -lpdalcpp -lpdal_util
 
 obj/%.o: %.cpp
 	@mkdir -p ./obj

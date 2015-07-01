@@ -74,7 +74,7 @@ private:
 
     GeoPackageReader* m_gpkg;
     std::unique_ptr<GpkgMatrixSet> m_matrixSet;
-    std::string m_matrixSetName;
+    std::string m_dataset;
 
     uint32_t m_queryLevel;
     BOX3D m_queryBox;

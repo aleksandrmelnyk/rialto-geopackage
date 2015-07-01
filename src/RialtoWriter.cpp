@@ -37,6 +37,8 @@
 #include <rialto/GeoPackageCommon.hpp>
 #include "WritableTileCommon.hpp"
 
+#include <boost/filesystem.hpp>
+
 
 static PluginInfo const s_info = PluginInfo(
     "writers.rialto",
@@ -60,9 +62,9 @@ void RialtoWriter::ready(PointTableRef table)
         m_gpkg = new GeoPackageWriter(m_filename, log());
         m_gpkg->open();
 
-        if (m_gpkg->doesTableExist(m_matrixSetName))
+        if (m_gpkg->doesTableExist(m_dataset))
         {
-            throw pdal_error("point cloud table already exists in database: " + m_matrixSetName);
+            throw pdal_error("point cloud table already exists in database: " + m_dataset);
         }
     }
     
@@ -96,7 +98,7 @@ void RialtoWriter::ready(PointTableRef table)
 
     // write tile matrix set table
     {
-        const GpkgMatrixSet info(m_matrixSetName, table.layout(), m_timestamp, srs,
+        const GpkgMatrixSet info(m_dataset, table.layout(), m_timestamp, srs,
                                  m_numColsAtL0, m_numRowsAtL0, m_description,
                                  lasMetadata, m_maxLevel);
 
@@ -199,7 +201,7 @@ std::string RialtoWriter::getName() const
 
 void RialtoWriter::processOptions(const Options& options)
 {
-    m_matrixSetName = options.getValueOrThrow<std::string>("name");
+    m_dataset = options.getValueOrDefault<std::string>("dataset", "");
     m_numColsAtL0 = options.getValueOrThrow<uint32_t>("numColsAtL0");
     m_numRowsAtL0 = options.getValueOrThrow<uint32_t>("numRowsAtL0");
     m_description = options.getValueOrThrow<std::string>("description");
@@ -220,6 +222,10 @@ void RialtoWriter::processOptions(const Options& options)
         throw pdal_error("TilerFilter: invalid matrix dimensions");
     }
 
+    if (m_dataset == "")
+    {
+        m_dataset = boost::filesystem::path(m_filename).stem().string() + "_tiles";
+    }
 }
 
 
@@ -235,7 +241,7 @@ void RialtoWriter::writeTile(PointView* view, uint32_t level, uint32_t col, uint
     if (view && view->size() > 0)
     {
         const GpkgTile tile(view, level, col, row, mask);
-        m_gpkg->writeTile(m_matrixSetName, tile);
+        m_gpkg->writeTile(m_dataset, tile);
     }
 }
 
@@ -246,7 +252,7 @@ void RialtoWriter::updateDimensionStats(PointLayoutPtr layout)
     {
         const std::string& name = Dimension::name(dim);
         const double mean = m_means[dim] / (double)m_numPoints;
-        m_gpkg->updateDimensionStats(m_matrixSetName, name, m_mins[dim], mean, m_maxes[dim]);
+        m_gpkg->updateDimensionStats(m_dataset, name, m_mins[dim], mean, m_maxes[dim]);
     }
 }
 
