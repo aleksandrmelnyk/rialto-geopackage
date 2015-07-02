@@ -42,7 +42,7 @@ mkdir -p /tmp/builds
 #
 # PDAL
 #
-curl -L https://github.com/PDAL/PDAL/archive/master.zip -o /tmp/sources/pdal.zip
+curl -L https://github.com/radiantbluetechnologies/archive/master.zip -o /tmp/sources/pdal.zip
 cd /tmp/sources
 unzip /tmp/sources/pdal.zip
 mv PDAL-master/ pdal/
