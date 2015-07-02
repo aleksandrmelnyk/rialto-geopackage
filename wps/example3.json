@@ -1,0 +1,17 @@
+{
+    "name": "color_tool",
+    "description": "generate a small PNG of a solid color (v1.4)",
+    "inputs": {
+        "color": {
+            "name": "color",
+            "datatype": "enum:colors"
+        },
+        "outfile": {
+            "name": "output PNG file",
+            "datatype": "file:raster"
+        }
+    },
+    "enums": {
+        "colors": ["red", "green", "blue"]
+    }
+}
