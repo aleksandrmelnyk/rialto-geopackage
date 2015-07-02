@@ -2,31 +2,30 @@
     "name": "ossim-viewshed",
     "inputs": {
         "observer": {
-            "name": "observer",
             "datatype": "position"
         },
         "fovStart": {
-            "name": "field of view, start value (in degrees)",
+            "description": "field of view, start value (in degrees)",
             "datatype": "double"
         },
         "fovEnd": {
-            "name": "field of view, end value (in degress)",
+            "description": "field of view, end value (in degress)",
             "datatype": "double"
         },
         "eyeHeight": {
-            "name": "eye height (in meters)",
+            "description": "eye height (in meters)",
             "datatype": "double"
         },
         "radius": {
-            "name": "radius (in meters)",
+            "description": "radius (in meters)",
             "datatype": "double"
         },
         "inputDem": {
-            "name": "input DEM file",
+            "description": "input DEM file",
             "datatype": "file:elevation"
         },
         "outputFile": {
-            "name": "output TIFF file",
+            "description": "output TIFF file",
             "datatype": "file:raster"
         }
     }

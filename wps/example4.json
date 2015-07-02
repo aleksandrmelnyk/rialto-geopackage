@@ -3,19 +3,16 @@
     "description": "loads the given file into the WMS server in the cluster with the most free disk space",
     "inputs": {
         "file": {
-            "name": "file",
             "datatype": "file:raster",
             "description": "the file to be ingested"
         }
     },
     "outputs": {
         "url_endpoint": {
-            "name": "url",
             "datatype": "url:wms",
             "description": "The URL of the WMS server where the file is now accessible"
         },
         "errors": {
-            "name": "error_messages",
             "datatype": "string",
             "description": "any errors produced by the ingest process; may be the empty string"
         }

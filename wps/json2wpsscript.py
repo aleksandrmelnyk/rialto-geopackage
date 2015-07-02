@@ -3,8 +3,15 @@
 import io
 import json
 import os.path
-import re
 import sys
+
+
+# TODO: what if switch name is not a legal python variable, e.g. "--output-file"
+# TODO: send datatypes to script correctly
+# TODO: send enums to script correctly
+# TODO: fix commas in lists
+# TODO: in the script, call the tool via subprocess
+# TODO: make file paths relative
 
 
 g_datatypes = [
@@ -54,9 +61,6 @@ def parse_enums(enums):
 def parse_param(data, enums):
     if type(data) is not dict: raise TypeError('Param is not a map')
     
-    if 'name' not in data:
-        raise ValueError('Param key "name" not found')
-        
     if 'datatype' not in data:
         raise ValueError('Param key "datatype" not found')
 
@@ -108,11 +112,11 @@ def dump_enums(enums):
             print value,
         print
 
+
 def dump_params(params, label):
     print '%s:' % label
     for param in params:
         print '    %s' % param
-        print '        Name:', params[param]['name']
         print '        Datatype:', params[param]['datatype']
         print '        Description:', params[param]['description']
 
@@ -124,22 +128,56 @@ def dump(data):
     dump_params(data['inputs'], 'Inputs')
     dump_params(data['outputs'], 'Outputs')
 
+
+def generate_script(data):
+    print 'from geoserver.wps import process'
+    print 'from com.vividsolutions.jts.geom import Geometry'
+    print
+    print '@process('
+    print '    title=\'%s\',' % data['name']
+    print '    description=\'%s\',' % data['description']
+    
+    print '    inputs={'
+    for param in data['inputs']:
+        attrs = data['inputs'][param]
+        print '        \'%s\': (%s, \'%s\')' % (param, attrs['datatype'], attrs['description'])
+    print '    }'
+    
+    print '    outputs={'
+    for param in data['outputs']:
+        attrs = data['outputs'][param]
+        print '        %s: (%s, \'%s\')' % (param, attrs['datatype'], attrs['description'])
+    print '    }'
+    print
+
+    print 'def run(',
+    for param in data['inputs']:
+        print param, ', ',
+    print '):'
+    print '    return FUNC(...)'
+
+
 def main(jsonfiles):
 
     for jsonfile in jsonfiles:
 
         with io.open(jsonfile, 'r') as infile:
-            print '============ %s ============' % jsonfile
+            print '============ %s ============' % os.path.basename(jsonfile)
+            print '------------ json ------------'
             data = json.load(infile)
             parse_root(data)
             print data
 
-            pyfile = os.path.splitext(jsonfile)[0] + ".py"
-            print '------------ %s ------------' % pyfile
+            print '------------ dump ------------'
             dump(data)
+
+            pyfile = os.path.splitext(jsonfile)[0] + ".py"
+            print '------------ python ------------'
+            generate_script(data)
 
 
 if len(sys.argv) == 1:
-    print 'Usage: $ %s <ile1.json file2.json ...' % os.path.basename(sys.argv[0])
+    print 'Usage: $ %s [file1.json file2.json ...]' % os.path.basename(sys.argv[0])
     exit(1)
+
 main(sys.argv[1:])

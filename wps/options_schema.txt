@@ -35,7 +35,6 @@ The description string should contain the version numbers of the tool.
 
 {
     "<name_of_parameter>": {
-        "name": <string>,                       // required
         "type": <datatype_string>,              // required
         "description": <string>
     },
@@ -49,12 +48,7 @@ All parameters are required to be present in the JSON file: none are optional,
 which removes the need for expressing default values.
 
 For inputs, the "name_of_parameter" key should correspond to the command line tool option
-name, and the "name" literal should be a user-friendly version of the option
-name. All options are expected to use the "--" switch syntax. Example:
-
-    "fovStart": {
-        "name": "field of view"
-    }
+name. All options are expected to use the "--" switch syntax.
 
 For outputs, the "name_of_parameter" information is not passed the command-line
 tool. Rather, it is used by the client to understand what to expect and how
@@ -121,31 +115,31 @@ This describes the current viewshed tool:
     "name": "ossim-viewshed",
     "inputs": {
         "observer": {
-            "name": "observer",
+            "description": "observer",
             "datatype": "position"
         },
         "fovStart": {
-            "name": "field of view, start value (in degrees)",
+            "description": "field of view, start value (in degrees)",
             "datatype": "double"
         }
         "fovEnd": {
-            "name": "field of view, end value (in degress)",
+            "description": "field of view, end value (in degress)",
             "datatype": "double"
         },
         "eyeHeight": {
-            "name": "eye height (in meters)",
+            "description": "eye height (in meters)",
             "datatype": "double"
         },
         "radius": {
-            "name": "radius (in meters)",
+            "description": "radius (in meters)",
             "datatype": "double"
         },
         "inputDem": {
-            "name": "input DEM file",
+            "description": "input DEM file",
             "datatype": "file:elevation"
         },
         "outputFile": {
-            "name": "output TIFF file",
+            "description": "output TIFF file",
             "datatype": "file:raster"
         }
     }
@@ -163,11 +157,11 @@ This shows the use of the "enum" datatype:
     "description": "generate a small PNG of a solid color (v1.4)",
     "inputs": {
         "color": {
-            "name": "color",
+            "description": "color",
             "datatype": "enum:colors"
         },
         "outfile": {
-            "name": "output PNG file",
+            "description": "output PNG file",
             "datatype": "file:raster"
         }
     },
@@ -188,19 +182,16 @@ This shows the use of (and need for) output parameters.
     "description": "loads the given file into the WMS server in the cluster with the most free disk space",
     "inputs": {
         "file": {
-            "name": "file",
             "datatype": "file:raster",
             "description": "the file to be ingested"
         }
     },
     "outputs": {
         "url_endpoint": {
-            "name": "url",
             "datatype": "url:wms",
             "description": "The URL of the WMS server where the file is now accessible"
         },
         "errors": {
-            "name": "error_messages",
             "datatype": "string",
             "description": "any errors produced by the ingest process; may be the empty string"
         }

@@ -3,11 +3,11 @@
     "description": "generate a small PNG of a solid color (v1.4)",
     "inputs": {
         "color": {
-            "name": "color",
+            "description": "color to use",
             "datatype": "enum:colors"
         },
         "outfile": {
-            "name": "output PNG file",
+            "description": "output PNG file",
             "datatype": "file:raster"
         }
     },
