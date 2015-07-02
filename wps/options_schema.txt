@@ -1,0 +1,188 @@
+JSON Schema for WPS Interfaces to Ossim/Rialto Command Line Tools
+=================================================================
+
+* The JSON object will be a ROOT_MAP, as described below.
+
+* All map keys and values are strings, unless noted otherwise.
+
+* All map keys are optional, unless noted otherwise. If key not present,
+  the value will be set to a default of "", 0, 0.0, false, or null,
+  according to the value's expected datatype, unless otherwise
+  specified.
+
+
+
+ROOT_MAP
+--------
+
+{
+    "tool_name": string,                // required
+    "tool_description": DESCRIPTION_MAP,
+    "input_parameters": PARAMETERS_MAP,     // these correspond to the command-line options
+    "output_parameters": PARAMETERS_MAP,
+    "enums" : ENUMS_MAP
+}
+
+
+
+DESCRIPTION_MAP
+---------------
+
+{
+    "version": string,
+    "short_description": string,
+    "long_description": string
+}
+
+
+
+PARAMETERS_MAP
+--------------
+
+Note these keys are only allowed in the context of an input parameter, as they
+don't make sense for outputted results: "minimum", "maximum", "default".
+
+{
+    name_of_parameter: {
+        "name": string,         // required
+        "datatype": DATATYPE_STRING,
+        "default": string,      // must syntactically conform to the specified datatype,
+                                //   default values specified below in DATATYPE_STRING section
+        "required": bool,       // default is false
+        "short_description": string,
+        "long_description": string,
+        "minimum": string,      // must syntactically conform to the specified datatype
+        "maximum": string,      // must syntactically conform to the specified datatype
+        "units": string
+    },
+    name_of_parameter: {
+        ...
+    },
+    ...
+}
+
+
+
+DATATYPE_STRING
+----------------
+
+Must be one of the following strings:
+
+    - "string"
+    - "int"
+    - "uint"
+    - "double"
+    - "position"    // array of two doubles (lon,lat), default value: [0.0,0.0]
+    - "bbox"        // an array of four doubles (minx, miny, maxx, maxy),
+                    //   default value: [-180.0, -90.0, 180.0, 90.0]
+    - ENUM_NAME     // must be one of the keys from the corresponding ENUM_MAP
+                    //   the default is the first element in the enum value list
+    - "raster_file"
+    - "elevation_file"
+    - "lidar_file"
+    - "rialto_geopackage"
+    - "text_file"
+
+Note we distinguish filenames from plain strings, and we also indicate the type
+of file that is being used. (We do not use the filename extension, as it is
+ambiguous: a .tif could be a 3-band raster image or a 1-band elevation set).
+
+
+ENUMS_MAP
+---------
+
+{
+    ENUM_NAME: [ value1, value2, ... ],
+    ENUM_NAME: [...]
+}
+
+
+
+Example 1 - shortest possible
+-----------------------------
+
+This is for a tool that takes no inputs and returns no outputs.
+
+{
+    "tool_name": "hello_world"
+}
+
+
+
+Example 2 - viewshed tool
+-------------------------
+
+This is taken from current WPS groovy script.
+
+{
+    "tool_name": "ossim-viewshed",
+    "input_parameters": {
+        "observer": {
+            "datatype": "position",
+            "required": true
+        },
+        "fovStart": {
+            "datatype": "double",
+            "units": "degrees",
+            "required": true,
+            "minimum": 0.0,
+            "maximum": 360.0
+        }
+        "fovEnd": {
+            "datatype": "double",
+            "units": "degrees",
+            "required": true,
+            "minimum": 0.0,
+            "maximum": 360.0
+        },
+        "eyeHeight": {
+            "datatype": "double",
+            "units": "meters",
+            "required": true
+        },
+        "radius": {
+            "datatype": "double",
+            "units": "meters"            
+            "required": true,
+            "minimum": 0.0
+        },
+        "inputDem": {
+            "datatype": "elevation_file",
+            "required": true
+        },
+        "outputFile": {
+            "datatype": "raster_file",
+            "required": true,
+        }
+    },
+    "output_parameters": {
+        "viewshed_result": "raster_file",
+        "short_description": "name of generated file"
+    }
+}
+
+
+
+Example 3 - shows use of ENUMs
+------------------------------
+
+{
+    "tool_name": "color_tool",
+    "description": {
+        "version": "1.0",
+        "short_description": "returns a small PNG of a solid color"
+    },
+    "input_parameters": {
+        "color": {
+            "datatype": "colors_enum"
+        },
+    },
+    "output_parameters": {
+        "colorpatch": {
+            "datatype": "raster_file"
+        },
+    },
+    "enums": {
+        "oven_settings_enum": ["black", "red", "green", "blue", "hot-pink"]
+    }
+}
