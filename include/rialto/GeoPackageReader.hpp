@@ -73,6 +73,9 @@ public:
     // yes this returns the tile ids (table's PK)
     void readTileIdsAtLevel(std::string const& name, uint32_t level, std::vector<uint32_t>& tileIds) const;
 
+    // used largely for gathering statistics
+    void getCountsAtLevel(std::string const& name, uint32_t level, uint32_t& numTiles, uint32_t& numPoints) const;
+   
     // query for id of the tile at (level,col,row)
     // returns -1 if not found
     uint32_t queryForTileId(std::string const& name,

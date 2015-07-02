@@ -63,6 +63,9 @@ public:
     double getMean() const { return m_mean; }
     double getMaximum() const { return m_maximum; }
 
+    // helpers
+    uint32_t getNumBytes() const;
+
 private:
     std::string m_name;
     uint32_t m_position;
@@ -129,6 +132,9 @@ public:
 
     uint32_t getNumColsAtL0() const { return m_numColsAtL0; }
     uint32_t getNumRowsAtL0() const { return m_numRowsAtL0; }
+
+    // helpers
+    uint32_t getBytesPerPoint() const; // helper method
 
 private:
     std::string m_datetime;

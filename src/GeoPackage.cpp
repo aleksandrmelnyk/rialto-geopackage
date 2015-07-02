@@ -217,7 +217,7 @@ void GeoPackage::readMatrixSet(std::string const& name, GpkgMatrixSet& info) con
         if (!r)
         {
             e_readMatrixSet.stop();
-            throw pdal_error("Requested matrix set does not exist");
+            throw pdal_error("Requested matrix set does not exist: " + name);
         }
 
         datetime = r->at(0).data;

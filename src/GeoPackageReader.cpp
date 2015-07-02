@@ -143,6 +143,36 @@ void GeoPackageReader::readTile(std::string const& name, uint32_t tileId, bool w
     assert(!m_sqlite->next());
 }
 
+void GeoPackageReader::getCountsAtLevel(std::string const& name, uint32_t level,
+                                        uint32_t& numTiles, uint32_t& numPoints) const
+{
+    if (!m_sqlite)
+    {
+        throw pdal_error("RialtoDB: invalid state (session does exist)");
+    }
+
+    std::ostringstream oss;
+    oss << "SELECT count(num_points),sum(num_points) FROM '" << name << "'"
+        << " WHERE zoom_level=" << level;
+
+    log()->get(LogLevel::Debug) << "SELECT for tile ids at level: " << level << std::endl;
+
+    m_sqlite->query(oss.str());
+
+    numTiles = 0;
+    numPoints = 0;
+    
+    do {
+        const row* r = m_sqlite->get();
+        if (!r) break;
+
+        numTiles += boost::lexical_cast<uint32_t>(r->at(0).data);
+        numPoints += boost::lexical_cast<uint32_t>(r->at(1).data);
+        
+        //log()->get(LogLevel::Debug) << "  got tile id=" << id << std::endl;
+    } while (m_sqlite->next());
+}
+
 
 void GeoPackageReader::readTileIdsAtLevel(std::string const& name, uint32_t level, std::vector<uint32_t>& ids) const
 {

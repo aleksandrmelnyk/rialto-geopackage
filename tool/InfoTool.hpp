@@ -34,8 +34,18 @@
 
 #include "Tool.hpp"
 
+namespace pdal
+{
+    class Stage;
+    class LasReader;
+}
 using namespace pdal;
 
+namespace rialto
+{
+    class RialtoReader;
+}
+using namespace rialto;
 
 class InfoTool : public Tool
 {
@@ -50,6 +60,10 @@ protected:
     void printUsage() const;
 
 private:
+    void printReader(const pdal::Stage&) const;
+    void printLasReader(const pdal::LasReader&) const;
+    void printRialtoReader(const rialto::RialtoReader&) const;
+    
     bool m_tileInfo;
     uint32_t m_tileLevel;
     uint32_t m_tileColumn;

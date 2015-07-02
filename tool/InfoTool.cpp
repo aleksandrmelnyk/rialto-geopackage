@@ -35,6 +35,8 @@
 
 #include "InfoTool.hpp"
 
+#include <iomanip>
+
 #include <rialto/GeoPackageCommon.hpp>
 #include <rialto/GeoPackageManager.hpp>
 #include <rialto/GeoPackageReader.hpp>
@@ -69,60 +71,142 @@ void InfoTool::printUsage() const
     printf("  'filename' can be .las, .laz, or .gpkg\n");
 }
 
+
+void InfoTool::printReader(const pdal::Stage& reader) const
+{
+    const SpatialReference& srs = reader.getSpatialReference();
+
+    std::cout << "SRS WKT:" << std::endl;
+    std::cout << "  " << srs.getWKT(SpatialReference::WKTModeFlag::eCompoundOK, true)
+              << std::endl;
+}
+
+
+void InfoTool::printRialtoReader(const RialtoReader& reader) const
+{
+    std::cout << "File type: rialto geopackage" << std::endl;
+
+    const GeoPackageReader& gpkg = reader.getGeoPackageReader();
+    const GpkgMatrixSet& matrixSet = reader.getMatrixSet();
+    const std::string name = matrixSet.getName();
+    const std::vector<GpkgDimension>& dims = matrixSet.getDimensions();
+    const uint32_t maxLevel = matrixSet.getMaxLevel();
+    
+    std::cout << "Name: " << name << std::endl;
+    std::cout << "Num dimensions: " << matrixSet.getNumDimensions() << std::endl;
+    std::cout << "Max level: " << maxLevel << std::endl;
+
+    std::cout << "Tile min (x,y): "
+        << matrixSet.getTmsetMinX()
+        << ", " << matrixSet.getTmsetMinY()
+        << std::endl;
+    std::cout << "Tile max (x,y): "
+        << matrixSet.getTmsetMaxX()
+        << ", " << matrixSet.getTmsetMaxY()
+        << std::endl;
+    
+    std::cout << "Data min (x,y): "
+        << matrixSet.getDataMinX()
+        << ", " << matrixSet.getDataMinY()
+        << std::endl;
+    std::cout << "Data max (x,y): "
+        << matrixSet.getDataMaxX()
+        << ", " << matrixSet.getDataMaxY()
+        << std::endl;
+
+    std::cout << "Level 0 (cols,rows): "
+      << matrixSet.getNumColsAtL0()
+      << ", " << matrixSet.getNumRowsAtL0()
+      << std::endl;
+
+    std::cout << "Dimensions: (position, name, type, min, mean, max)" << std::endl;
+    for (auto dim: dims)
+    {
+        std::cout << "  " << dim.getPosition()
+          << ": " << dim.getName()
+          << ", " << dim.getDataType()
+          << ", " << dim.getMinimum()
+          << ", " << dim.getMean()
+          << ", " << dim.getMaximum()
+          << std::endl;
+    }
+    
+    std::cout << "Num (tiles,points) at level:" << std::endl;
+    uint32_t numPointsAtLevelN;
+    for (uint32_t i=0; i<=maxLevel; i++)
+    {
+        uint32_t numTiles, numPoints;
+        gpkg.getCountsAtLevel(name, i, numTiles, numPoints);
+        std::cout << "  " << i
+          << ": " << numTiles
+          << ", " << numPoints
+          << std::endl;
+        numPointsAtLevelN = numPoints;
+    }
+    
+    uint32_t bytesPerPoint = matrixSet.getBytesPerPoint();
+    std::cout << "Bytes per point: " << bytesPerPoint << std::endl;
+    
+    // efficiency of 2.0 means the file is twice the size of the ideal (bloated)
+    // efficiency of 0.5 means the file is half the size of the ideal (compressed)
+    const uint64_t fileSize = FileUtils::fileSize(m_inputName);
+    double efficiency = (double)fileSize / (double)(bytesPerPoint * numPointsAtLevelN);
+    efficiency = round(efficiency*100.0)/100.0;
+    std::cout << "Encoding efficiency: " << efficiency << std::endl;
+
+    if (m_tileInfo)
+    {
+        const uint32_t tileId = gpkg.queryForTileId(matrixSet.getName(), m_tileLevel, m_tileColumn, m_tileRow);
+        if (tileId == -1)
+        {
+            error("specified tile not found");
+        }
+        GpkgTile tileInfo;
+        gpkg.readTile(matrixSet.getName(), tileId, false, tileInfo);
+        printf("  tile (%u,%u,%u) info:\n", m_tileLevel, m_tileColumn, m_tileRow);
+        printf("     num points: %u\n", tileInfo.getNumPoints());
+        
+        const TileMath tmm(matrixSet.getTmsetMinX(), matrixSet.getTmsetMinY(),
+                           matrixSet.getTmsetMaxX(), matrixSet.getTmsetMaxY(),
+                           matrixSet.getNumColsAtL0(), matrixSet.getNumRowsAtL0());
+        double minx, miny, maxx, maxy;
+        tmm.getTileBounds(m_tileLevel, m_tileColumn, m_tileRow,
+                          minx, miny, maxx, maxy);
+        printf("    tile bounds minx, miny: %f, %f\n", minx, miny);
+        printf("                maxx, maxy: %f, %f\n", maxx, maxy);
+
+  }
+}
+
+
+void InfoTool::printLasReader(const LasReader& reader) const
+{
+    printf("File type: las or laz\n");
+  
+    const LasHeader& h = reader.header();
+    printf("Point count: %llu\n", h.pointCount());
+    printf("Point length (bytes): %d\n", h.pointLen());
+}
+
+
 void InfoTool::run()
 {
     pdal::Stage* reader = createReader(m_inputName, m_inputType);
     
     pdal::PointTable table;
     reader->prepare(table);
-
-    const SpatialReference& srs = reader->getSpatialReference();
     
-    printf("SRS name: %s\n", srs.getName().c_str());
-    //printf("SRS description: %s\n", srs.getDescription().c_str());
-    printf("SRS WKT: %s\n", srs.getWKT(SpatialReference::WKTModeFlag::eCompoundOK, true).c_str());
-    
+    printReader(*reader);
+        
     if (m_inputType == TypeLas || m_inputType == TypeLaz)
     {
-        printf("File type: las or laz\n");
-        
         LasReader* r = (LasReader*)reader;
-        const LasHeader& h = r->header();
-        printf("Point count: %llu\n", h.pointCount());
-        printf("Point length (bytes): %d\n", h.pointLen());
+        printLasReader(*r);
     }
     else if (m_inputType == TypeRialto)
     {
-        printf("Filt type: rialto geopackage\n");
-        
-        RialtoReader* r = (RialtoReader*)reader;
-        const GpkgMatrixSet& ms = r->getMatrixSet();
-        printf("Num dimensions: %d\n", ms.getNumDimensions());
-        printf("Max level: %d\n", ms.getMaxLevel());
-    
-        if (m_tileInfo)
-        {
-            const GeoPackageReader& gpkg = r->getGeoPackageReader();
-            const uint32_t tileId = gpkg.queryForTileId(ms.getName(), m_tileLevel, m_tileColumn, m_tileRow);
-            if (tileId == -1)
-            {
-                error("specified tile not found");
-            }
-            GpkgTile tileInfo;
-            gpkg.readTile(ms.getName(), tileId, false, tileInfo);
-            printf("  tile (%u,%u,%u) info:\n", m_tileLevel, m_tileColumn, m_tileRow);
-            printf("     num points: %u\n", tileInfo.getNumPoints());
-            
-            const TileMath tmm(ms.getTmsetMinX(), ms.getTmsetMinY(),
-                               ms.getTmsetMaxX(), ms.getTmsetMaxY(),
-                               ms.getNumColsAtL0(), ms.getNumRowsAtL0());
-            double minx, miny, maxx, maxy;
-            tmm.getTileBounds(m_tileLevel, m_tileColumn, m_tileRow,
-                              minx, miny, maxx, maxy);
-            printf("    tile bounds minx, miny: %f, %f\n", minx, miny);
-            printf("                maxx, maxy: %f, %f\n", maxx, maxy);
-
-        }
+        RialtoReader* r = (RialtoReader*)reader;    
+        printRialtoReader(*r);
     }
     else
     {

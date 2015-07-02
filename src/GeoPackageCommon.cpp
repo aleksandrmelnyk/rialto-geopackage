@@ -120,6 +120,17 @@ void GpkgMatrixSet::set(const std::string& datetime,
 }
 
 
+uint32_t GpkgMatrixSet::getBytesPerPoint() const
+{
+    uint32_t numBytes = 0;
+    for (auto dim: m_dimensions)
+    {
+        numBytes += dim.getNumBytes();
+    }
+    return numBytes;
+}
+
+
 GpkgDimension::GpkgDimension(const std::string& name,
                              uint32_t position,
                              const std::string& dataType,
@@ -160,6 +171,13 @@ void GpkgDimension::importVector(PointLayoutPtr layout,
     }
 }
 
+
+uint32_t GpkgDimension::getNumBytes() const
+{
+    const Dimension::Type::Enum typeId = Dimension::type(getDataType());
+    return Dimension::size(typeId);
+}
+  
 
 GpkgTile::GpkgTile(PointView* view,
                    uint32_t level, uint32_t column, uint32_t row, uint32_t mask) :
