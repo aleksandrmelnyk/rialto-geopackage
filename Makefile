@@ -2,7 +2,7 @@ include defs.mk
 
 .PHONY: all gtest rialto_lib rialto_test rialto_translate rialto_info clean install test
 
-all: gtest rialto_lib rialto_test rialto_translate rialto_info
+all: gtest rialto_lib rialto_test rialto_tools rialto_info
 
 gtest:
 	cd vendor/gtest-1.7.0/ ; \
@@ -15,7 +15,7 @@ rialto_lib:
 rialto_test: rialto_lib gtest
 	$(MAKE) -C test all
 
-rialto_translate: rialto_lib
+rialto_tools: rialto_lib
 	$(MAKE) -C tool all
 
 rialto_info: rialto_lib
@@ -27,7 +27,7 @@ clean:
 	$(MAKE) -C test clean
 
 test:
-	cd test ; ./obj/rialto_test
+		./test/obj/rialto_test
 
 install: all
 	mkdir -p $(INSTALL_DIR)/include/ $(INSTALL_DIR)/lib/ $(INSTALL_DIR)/bin/

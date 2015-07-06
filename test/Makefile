@@ -5,7 +5,7 @@ CFLAGS=	-g -std=c++11 -fPIC -O3 \
 -I$(INSTALL_DIR)/include \
 -I../vendor/gtest-1.7.0/include
 
-LDFLAGS=-Wl,-rpath,$(INSTALL_DIR)/lib -L$(INSTALL_DIR)/lib \
+LDFLAGS=-L../src/obj -Wl,-rpath,$(INSTALL_DIR)/lib -L$(INSTALL_DIR)/lib \
 -L../vendor/gtest-1.7.0
 
 CC=c++
@@ -14,6 +14,8 @@ OBJS=obj/GeoPackageTest.o obj/RialtoReaderTest.o obj/RialtoWriterTest.o obj/Rial
 obj/TileMathTest.o
 
 DEPS=RialtoTest.hpp
+
+.PHONY: all install test clean
 
 all: obj/rialto_test
 

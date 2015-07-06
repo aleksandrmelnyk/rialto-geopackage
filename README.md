@@ -25,23 +25,54 @@ slides: [http://www.slideshare.net/mpgx/geo-package-pointclouds].
 Building and Running
 --------------------
 
+*SCons*
+
+* to build: `$ scons [debug=1] pdal_prefix=FOO install_prefix=BAR`
+* to install:  `$ scons [debug=1] pdal_prefix=FOO install_prefix=BAR install`
+* to clean build:  `$ scons [debug=1] pdal_prefix=FOO install_prefix=BAR -c`
+* to clean install:  `$ scons [debug=1] pdal_prefix=FOO install_prefix=BAR -c install`
+* to test: `$ BAR/test/rialto_test`
+
+*Make*
+
+_IMPORTANT: For anything later than the 0.1 branch, the preferred build system
+is to use `SCons`, not `make`._
+
+  $ make all
+  $ export DYLD_LIBRARY_PATH=...as needed...
+  $ make test
+
 The top-level Makefile will:
   * build the librialto.so library
   * build the unit tests for the library
   * build a simple command-line tool
 
 You will need to edit `defs.mk` to point to your preferred install location,
-then just do `make all ; make install`. Note that this library requires PDAL
-([https://github.com/PDAL/PDAL]).
+then just do `make all ; make install`.
 
-_(Yes, yes, I know -- at some point I'll switch this over to use cmake.)_
+*PDAL*
+
+Rialto requires the PDAL libraries ([https://github.com/PDAL/PDAL]). We normally
+build against a fork of PDAL at https://github.com/radiantbluetechnologies/PDAL,
+but the main repo should work fine as well (as of late June 2015).
+
+*Docker*
+
+Docker Hub is used to build a new container for Rialto on every push:
+
+  https://registry.hub.docker.com/u/radiantbluetechnologies/rialto-geopackage-tools/
+
+*Running*
   
-The command line app, `rialto_tool`, can be used to create a geopackage file:
+The command line app `rialto_translate`, can be used to create a geopackage file:
 
-    $ rialto_too -i input.las -o output.gpkg -p
-
-The optional `-p` switch forces a reprojection into 4326.
-
+    $ rialto_translate -i input.las -o output.gpkg
+    
+The app `rialto_info` will print information about a geopackage file:
+    
+    $ rialto_info foo.gpkg
+    
+Use `-h` for additional options to these tools.
 
 
 The Library
