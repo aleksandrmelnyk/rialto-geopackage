@@ -24,6 +24,8 @@ DEPS=\
 ./TileMath.hpp \
 ./WritableTileCommon.hpp
 
+.PHONY: all install clean
+
 all: obj/librialto.so
 
 obj/librialto.so: $(OBJS)

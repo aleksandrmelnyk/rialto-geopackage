@@ -5,13 +5,15 @@ CFLAGS=	-g -std=c++11 -O3 \
 -I../include \
 -I$(INSTALL_DIR)/include
 
-LDFLAGS=-Wl,-rpath,$(INSTALL_DIR)/lib -L$(INSTALL_DIR)/lib
+LDFLAGS=-L../src/obj -Wl,-rpath,$(INSTALL_DIR)/lib -L$(INSTALL_DIR)/lib
 
 CC=c++
 
 OBJS=obj/Tool.o obj/InfoTool.o obj/TranslateTool.o
 
 DEPS=Tool.hpp
+
+.PHONY: all install clean
 
 all: obj/rialto_info obj/rialto_translate
 
