@@ -13,5 +13,6 @@
     },
     "enums": {
         "colors": ["red", "green", "blue"]
-    }
+    },
+    "outputs": {}
 }

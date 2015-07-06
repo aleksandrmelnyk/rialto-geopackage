@@ -1,0 +1,25 @@
+{
+    "name": "ossim-test01",
+    "description": "a test case",
+    "inputs": {
+        "setting": {
+            "description": "some number",
+            "datatype": "double"
+        },
+        "inputFile": {
+            "description": "input file",
+            "datatype": "string"
+        },
+        "outputFile": {
+            "description": "output file",
+            "datatype": "string",
+            "result": true
+        }
+    },
+    "outputs": {
+        "url": {
+            "description": "generated URL of output",
+            "datatype": "url:wms"
+        }
+    }
+}
