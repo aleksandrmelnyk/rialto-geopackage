@@ -1,0 +1,14 @@
+{
+    "name": "example5",
+    "description": "test hyphen conversion",
+    "inputs": {
+        "input-file": {
+            "datatype": "file:raster"
+        }
+    },
+    "outputs": {
+        "output-file": {
+            "datatype": "file:raster"
+        }
+    }
+}

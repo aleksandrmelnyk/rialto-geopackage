@@ -1,0 +1,13 @@
+{
+    "name": "bad_switch_name",
+    "inputs": {
+        "input__file": {
+            "datatype": "file:raster"
+        }
+    },
+    "outputs": {
+      "output__file": {
+          "datatype": "file:raster"
+      }
+  }
+}

@@ -5,12 +5,6 @@ import json
 import os.path
 import sys
 
-
-# TODO: what if switch name is not a legal python variable, e.g. "--output-file"
-# TODO: send datatypes to script correctly
-# TODO: send enums to script correctly
-# TODO: fix commas in lists
-# TODO: in the script, call the tool via subprocess
 # TODO: make file paths relative
 
 
@@ -29,6 +23,10 @@ g_datatypes = [
 ]
 
 
+def printf(s):
+    sys.stdout.write(s)
+
+
 def parse_description(description):
     if not isinstance(description, basestring): raise TypeError('Description is not a string')
 
@@ -36,7 +34,7 @@ def parse_description(description):
 def parse_datatype(datatype, enums):
     if not isinstance(datatype, basestring): raise TypeError('Datatype is not a string')
     
-    if datatype[0:5] == 'enum:':
+    if datatype.startswith('enum:'):
         enum_type = datatype[5:]
         if enum_type not in enums:
             raise ValueError('Enum datatype not defined')
@@ -129,33 +127,88 @@ def dump(data):
     dump_params(data['outputs'], 'Outputs')
 
 
-def generate_script(data):
-    print 'from geoserver.wps import process'
-    print 'from com.vividsolutions.jts.geom import Geometry'
-    print
-    print '@process('
-    print '    title=\'%s\',' % data['name']
-    print '    description=\'%s\',' % data['description']
-    
-    print '    inputs={'
-    for param in data['inputs']:
-        attrs = data['inputs'][param]
-        print '        \'%s\': (%s, \'%s\')' % (param, attrs['datatype'], attrs['description'])
-    print '    }'
-    
-    print '    outputs={'
-    for param in data['outputs']:
-        attrs = data['outputs'][param]
-        print '        %s: (%s, \'%s\')' % (param, attrs['datatype'], attrs['description'])
-    print '    }'
-    print
 
-    print 'def run(',
-    for param in data['inputs']:
-        print param, ', ',
-    print '):'
-    print '    return FUNC(...)'
 
+class Script:
+    json = None
+
+    def __init__(self, data):
+        self.json = data
+        
+    # In the JSON the switch name might be "output-file",
+    # but that's not a legal Python name, so do a s/-/__/
+    #
+    # To simplify life, we do not support switch names
+    # already containing "__". 
+    @staticmethod
+    def canonicalize_option_name(name):
+        if '__' in name:
+            raise ValueError("invalid option name: %s" % name)
+        new_name = name.replace('-', '__')
+        return new_name
+
+    @staticmethod
+    def canonicalize_datatype_name(str):
+        if str == 'string': return 'string'
+        if str == 'int': return 'int'
+        if str == 'double': return 'float'
+        if str.startswith('enum:'): return 'string'
+        if str.startswith('file:'): return 'string'
+        if str.startswith('url:'): return 'string'
+        raise ValueError('unknown datatype: %s' % str)
+
+    def print_header_block(self):
+        printf('from geoserver.wps import process\n')
+        printf('from com.vividsolutions.jts.geom import Geometry\n')
+        printf('from subprocess import Popen, PIPE\n')
+        printf('\n')
+        printf('@process(\n')
+        printf('    title = \'%s\',\n' % self.json['name'])
+        printf('    description = \'%s\',\n' % self.json['description'])
+        
+    def print_run_block(self):
+        printf('def run(')
+        sorted_list = self.json['outputs']
+        for param in sorted_list:
+            param_name = canonicalize_option_name(param)
+            print param_name,
+            if param_name != sorted_list[-1]:
+                printf(', ')
+        printf('):\n')
+
+        printf('    cmd = "ls -l /"\n')
+        printf('    p = Popen(cmd , shell=True, stdout=PIPE, stderr=PIPE\n')
+        printf('    out, err = p.communicate()\n')
+        printf('    print "Return code: ", p.returncode\n')
+        printf('    print out.rstrip(), err.rstrip()\n')
+
+    def print_param_list(self, io):
+        printf('    %s = {\n' % io)
+        sorted_list = sorted(self.json[io])
+        for param in sorted_list:
+
+            attrs = self.json[io][param]
+            param_name = Script.canonicalize_option_name(param)
+            datatype_name = Script.canonicalize_datatype_name(attrs['datatype'])
+            printf('        \'%s\': (%s, \'%s\')' % (param_name, datatype_name, attrs['description']))
+            if param != sorted_list[-1]:
+                printf(',')
+            printf('\n')
+        printf('    }')
+
+    def generate_script(self):
+        self.print_header_block()
+
+        self.print_param_list('inputs')
+        printf(',\n')
+
+        self.print_param_list('outputs')
+        printf('\n')
+
+        printf(')\n')
+        printf('\n')
+
+        self.print_run_block()
 
 def main(jsonfiles):
 
@@ -173,7 +226,8 @@ def main(jsonfiles):
 
             pyfile = os.path.splitext(jsonfile)[0] + ".py"
             print '------------ python ------------'
-            generate_script(data)
+            script = Script(data)
+            script.generate_script()
 
 
 if len(sys.argv) == 1:
