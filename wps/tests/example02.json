@@ -28,5 +28,6 @@
             "description": "output TIFF file",
             "datatype": "file:raster"
         }
-    }
+    },
+    "outputs": {}
 }

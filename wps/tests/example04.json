@@ -11,10 +11,6 @@
         "url_endpoint": {
             "datatype": "url:wms",
             "description": "The URL of the WMS server where the file is now accessible"
-        },
-        "errors": {
-            "datatype": "string",
-            "description": "any errors produced by the ingest process; may be the empty string"
         }
     }
 }

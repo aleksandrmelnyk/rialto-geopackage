@@ -5,8 +5,6 @@ import json
 import os.path
 import sys
 
-# TODO: make file paths relative
-
 
 g_datatypes = [
     'string',
@@ -23,109 +21,107 @@ g_datatypes = [
 ]
 
 
-def printf(s):
-    sys.stdout.write(s)
+
+def fprintf(file, str):
+    file.write(str)
 
 
-def parse_description(description):
-    if not isinstance(description, basestring): raise TypeError('Description is not a string')
 
-
-def parse_datatype(datatype, enums):
-    if not isinstance(datatype, basestring): raise TypeError('Datatype is not a string')
+class Parse:
     
-    if datatype.startswith('enum:'):
-        enum_type = datatype[5:]
-        if enum_type not in enums:
-            raise ValueError('Enum datatype not defined')
-    else:
-        if datatype not in g_datatypes:
-            raise ValueError('Datatype not valid: %s' % datatype)
+    def parse_description(self, description):
+        if not isinstance(description, basestring): raise TypeError('Description is not a string')
 
 
-def parse_enum_values(enum_values):
-    if len(enum_values) == 0:
-        raise ValueError('Enum values not specified')
-    for value in enum_values:
-        if not isinstance(value, basestring): raise TypeError('Enum value is not a string')
+    def parse_datatype(self, datatype, enums):
+        if not isinstance(datatype, basestring): raise TypeError('Datatype is not a string')
+        
+        if datatype.startswith('enum:'):
+            enum_type = datatype[5:]
+            if enum_type not in enums:
+                raise ValueError('Enum datatype not defined')
+        else:
+            if datatype not in g_datatypes:
+                raise ValueError('Datatype not valid: %s' % datatype)
+
+    def parse_enum_values(self, enum_values):
+        if len(enum_values) == 0:
+            raise ValueError('Enum values not specified')
+        for value in enum_values:
+            if not isinstance(value, basestring): raise TypeError('Enum value is not a string')
+
+    def parse_enums(self, enums):
+        if type(enums) is not dict: raise TypeError('Enums is not a map')
+        for enum in enums:
+            self.parse_enum_values(enums[enum])
+
+    def parse_param(self, data, enums):
+        if type(data) is not dict: raise TypeError('Param is not a map')
+        
+        if 'datatype' not in data:
+            raise ValueError('Param key "datatype" not found')
+
+        self.parse_datatype(data['datatype'], enums)
+        
+        if 'description' in data:
+            self.parse_description(data['description'])
+        else:
+            data['description'] = ''
+        
+    def parse_params(self, data, enums):
+        if type(data) is not dict: raise TypeError('Params is not a map')
+        
+        for k in data:
+            self.parse_param(data[k], enums)
+
+    def parse_root(self, data):
+        if type(data) is not dict: raise TypeError('Root is not a map')
+
+        if 'name' not in data:
+            raise ValueError('Root key "name" not found')
+
+        if 'description' not in data:
+            data['description'] = ''
+
+        if 'enums' in data:
+            self.parse_enums(data['enums'])
+        else:
+            data['enums'] = {}
+
+        if 'inputs' not in data:
+            raise ValueError('Root key "inputs" not found')
+        self.parse_params(data['inputs'], data['enums'])
+
+        if 'outputs' not in data:
+            raise ValueError('Root key "outputs" not found')
+        self.parse_params(data['outputs'], data['enums'])
 
 
-def parse_enums(enums):
-    if type(enums) is not dict: raise TypeError('Enums is not a map')
-    for enum in enums:
-        parse_enum_values(enums[enum])
+
+class Dump:
     
-    
-def parse_param(data, enums):
-    if type(data) is not dict: raise TypeError('Param is not a map')
-    
-    if 'datatype' not in data:
-        raise ValueError('Param key "datatype" not found')
+    def dump_enums(self, enums):
+        print 'Enums:'
+        for enum in enums:
+            print '    %s:' % enum,
+            for value in enums[enum]:
+                print value,
+            print
 
-    parse_datatype(data['datatype'], enums)
-    
-    if 'description' in data:
-        parse_description(data['description'])
-    else:
-        data['description'] = ''
-    
-    
-def parse_params(data, enums):
-    if type(data) is not dict: raise TypeError('Params is not a map')
-    
-    for k in data:
-        parse_param(data[k], enums)
+    def dump_params(self, params, label):
+        print '%s:' % label
+        for param in params:
+            attrs = params[param]
+            print '    %s' % param
+            print '        Datatype:', attrs['datatype']
+            print '        Description:', attrs['description']
 
-
-def parse_root(data):
-    if type(data) is not dict: raise TypeError('Root is not a map')
-
-    if 'name' not in data:
-        raise ValueError('Root key "name" not found')
-
-    if 'enums' in data:
-        parse_enums(data['enums'])
-    else:
-        data['enums'] = {}
-
-    if 'inputs' in data:
-        parse_params(data['inputs'], data['enums'])
-    else:
-        data['inputs'] = []
-
-    if 'outputs' in data:
-        parse_params(data['outputs'], data['enums'])
-    else:
-        data['outputs'] = []
-
-    if 'description' not in data:
-        data['description'] = ''
-
-
-def dump_enums(enums):
-    print 'Enums:'
-    for enum in enums:
-        print '    %s:' % enum,
-        for value in enums[enum]:
-            print value,
-        print
-
-
-def dump_params(params, label):
-    print '%s:' % label
-    for param in params:
-        print '    %s' % param
-        print '        Datatype:', params[param]['datatype']
-        print '        Description:', params[param]['description']
-
-
-def dump(data):
-    print 'Ttile:', data['name']
-    print 'Description:', data['description']
-    dump_enums(data['enums'])
-    dump_params(data['inputs'], 'Inputs')
-    dump_params(data['outputs'], 'Outputs')
-
+    def dump(self, data):
+        print 'Ttile:', data['name']
+        print 'Description:', data['description']
+        self.dump_enums(data['enums'])
+        self.dump_params(data['inputs'], 'Inputs')
+        self.dump_params(data['outputs'], 'Outputs')
 
 
 
@@ -149,89 +145,138 @@ class Script:
 
     @staticmethod
     def canonicalize_datatype_name(str):
-        if str == 'string': return 'string'
+        if str == 'string': return 'str'
         if str == 'int': return 'int'
         if str == 'double': return 'float'
-        if str.startswith('enum:'): return 'string'
-        if str.startswith('file:'): return 'string'
-        if str.startswith('url:'): return 'string'
+        if str == 'position': return 'str'
+        if str.startswith('enum:'): return 'str'
+        if str.startswith('file:'): return 'str'
+        if str.startswith('url:'): return 'str'
         raise ValueError('unknown datatype: %s' % str)
 
-    def print_header_block(self):
-        printf('from geoserver.wps import process\n')
-        printf('from com.vividsolutions.jts.geom import Geometry\n')
-        printf('from subprocess import Popen, PIPE\n')
-        printf('\n')
-        printf('@process(\n')
-        printf('    title = \'%s\',\n' % self.json['name'])
-        printf('    description = \'%s\',\n' % self.json['description'])
+    def print_header_block(self, f):
+        fprintf(f, '#!/usr/bin/env python\n')
+        fprintf(f, '\n')
+        fprintf(f, 'from geoserver.wps import process\n')
+        fprintf(f, 'from com.vividsolutions.jts.geom import Geometry\n')
+        fprintf(f, 'import re\n')
+        fprintf(f, 'from subprocess import Popen, PIPE\n')
+        fprintf(f, '\n')
+        fprintf(f, '@process(\n')
+        fprintf(f, '    title = \'%s\',\n' % self.json['name'])
+        fprintf(f, '    description = \'%s\',\n' % self.json['description'])
         
-    def print_run_block(self):
-        printf('def run(')
-        sorted_list = self.json['outputs']
+    def print_run_block(self, f):
+        fprintf(f, 'def run(')
+        if self.json['inputs']:
+            params = self.json['inputs'].keys()
+            params.sort()
+            for param in params:
+                param_name = Script.canonicalize_option_name(param)
+                fprintf(f, param_name)
+                if param_name != params[-1]:
+                    fprintf(f, ', ')
+        fprintf(f, '):\n')
+
+        fprintf(f, '    cmd = "%s/%s.sh' % ("/Users/mgerlek/work/dev/rialto-geopackage/wps/tests", self.json['name']))
+        if self.json['inputs']:
+            params = self.json['inputs'].keys()
+            params.sort()
+            for param in params:
+                param_name = Script.canonicalize_option_name(param)
+                fprintf(f, " --%s %s" % (param, param_name))
+        fprintf(f, '"\n')
+        
+        fprintf(f, """
+    p = Popen(cmd , shell=True, stdout=PIPE, stderr=PIPE)
+    out, err = p.communicate()
+    print "Return code: ", p.returncode
+    print out.rstrip(), err.rstrip()
+    
+    results = {"stdout":out, "stderr": err, "status": p.returncode}
+    p = re.compile('^\[(\w+)\]\s*(.*)')
+    for line in out.split("\\n"):
+        ms = p.findall(line)
+        for (k,v) in ms:
+            results[k] = v
+    
+    return results
+""")
+
+    def print_inputs_list(self, f):
+        fprintf(f, '    inputs = {\n')
+        sorted_list = sorted(self.json['inputs'])
         for param in sorted_list:
-            param_name = canonicalize_option_name(param)
-            print param_name,
-            if param_name != sorted_list[-1]:
-                printf(', ')
-        printf('):\n')
 
-        printf('    cmd = "ls -l /"\n')
-        printf('    p = Popen(cmd , shell=True, stdout=PIPE, stderr=PIPE\n')
-        printf('    out, err = p.communicate()\n')
-        printf('    print "Return code: ", p.returncode\n')
-        printf('    print out.rstrip(), err.rstrip()\n')
-
-    def print_param_list(self, io):
-        printf('    %s = {\n' % io)
-        sorted_list = sorted(self.json[io])
-        for param in sorted_list:
-
-            attrs = self.json[io][param]
+            attrs = self.json['inputs'][param]
             param_name = Script.canonicalize_option_name(param)
             datatype_name = Script.canonicalize_datatype_name(attrs['datatype'])
-            printf('        \'%s\': (%s, \'%s\')' % (param_name, datatype_name, attrs['description']))
+            descr = '%s [%s]' % (attrs['description'], attrs['datatype'])
+            fprintf(f, '        \'%s\': (%s, \'%s\')' % (param_name, datatype_name, descr))
             if param != sorted_list[-1]:
-                printf(',')
-            printf('\n')
-        printf('    }')
+                fprintf(f, ',')
+            fprintf(f, '\n')
+        fprintf(f, '    }')
 
-    def generate_script(self):
-        self.print_header_block()
+    def print_outputs_list(self, f):
+        fprintf(f, """
+    outputs = {
+        'status': (int, 'the return code from the script [int]'),
+        'stdout': (str, 'stdout from the script [string]'),
+        'stderr': (str, 'stderr from the script [string]')""")
 
-        self.print_param_list('inputs')
-        printf(',\n')
+        sorted_list = sorted(self.json['outputs'])
+        for param in sorted_list:
 
-        self.print_param_list('outputs')
-        printf('\n')
+            fprintf(f, ',\n')
+            attrs = self.json['outputs'][param]
+            param_name = Script.canonicalize_option_name(param)
+            datatype_name = Script.canonicalize_datatype_name(attrs['datatype'])
+            descr = '%s [%s]' % (attrs['description'], attrs['datatype'])
+            fprintf(f, '        \'%s\': (%s, \'%s\')' % (param_name, datatype_name, descr))
 
-        printf(')\n')
-        printf('\n')
+        fprintf(f, """
+    }
+""")
+        fprintf(f, ')\n')
 
-        self.print_run_block()
+    def generate_script(self, filename):
+        f = open(filename, "w")
+        self.print_header_block(f)
 
-def main(jsonfiles):
+        self.print_inputs_list(f)
+        fprintf(f, ',\n')
 
-    for jsonfile in jsonfiles:
+        self.print_outputs_list(f)
+        fprintf(f, '\n')
 
-        with io.open(jsonfile, 'r') as infile:
-            print '============ %s ============' % os.path.basename(jsonfile)
-            print '------------ json ------------'
-            data = json.load(infile)
-            parse_root(data)
-            print data
-
-            print '------------ dump ------------'
-            dump(data)
-
-            pyfile = os.path.splitext(jsonfile)[0] + ".py"
-            print '------------ python ------------'
-            script = Script(data)
-            script.generate_script()
+        self.print_run_block(f)
+        f.close()
 
 
-if len(sys.argv) == 1:
-    print 'Usage: $ %s [file1.json file2.json ...]' % os.path.basename(sys.argv[0])
+
+def main(jsonfile, pyfile):
+
+    with io.open(jsonfile, 'r') as infile:
+        print '============ %s ============' % os.path.basename(jsonfile)
+        data = json.load(infile)
+        parse = Parse()
+        parse.parse_root(data)
+        
+        #print '------------ json ------------'
+        #print data
+
+        #print '------------ dump ------------'
+        dump = Dump()
+        #dump.dump(data)
+
+        print '------------ python ------------'
+        script = Script(data)
+        script.generate_script(pyfile)
+
+
+if len(sys.argv) != 3:
+    print 'Usage: $ %s file.json file.py' % os.path.basename(sys.argv[0])
     exit(1)
 
-main(sys.argv[1:])
+main(sys.argv[1], sys.argv[2])
