@@ -106,8 +106,11 @@ This is just a JSON <string> literal which must be one of the following:
     - "string"
     - "int"
     - "double"
-    - "position"    // string with array of two doubles: "lon lat"
-    - "bbox"        // string with an array of four doubles: "minx, miny, maxx, maxy"
+    - "geographic-2d"   // string with array of two doubles: (lon, lat)
+    - "geographic-3d"   // string with array of three doubles: (lon, lat, hgt)
+    - "xy"              // string with array of two doubles: (min, max) or (start, end) or (x, y)
+    - "xyz"             // string with an array of three doubles: (x, y, z)
+    - "bbox"    // string with an array of four doubles: (minx, miny, maxx, maxy)
     - "enum:NAME"   // see below
     - "file:raster"
     - "file:elevation"
