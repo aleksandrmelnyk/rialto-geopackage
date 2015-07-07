@@ -178,7 +178,7 @@ class Script:
                     fprintf(f, ', ')
         fprintf(f, '):\n')
 
-        fprintf(f, '    cmd = "%s/%s.sh' % ("/Users/mgerlek/work/dev/rialto-geopackage/wps/tests", self.json['name']))
+        fprintf(f, '    cmd = "%s/%s.sh' % ("/tmp", self.json['name']))
         if self.json['inputs']:
             params = self.json['inputs'].keys()
             params.sort()

@@ -5,6 +5,8 @@
 
 GSHOST=http://localhost:8080/geoserver/ows
 WPSCMD="service=wps&version=1.0.0&request=Execute"
+WPS_SCRIPT_DIR=/Applications/GeoServer.app/Contents/Java/data_dir/scripts/wps
+OSSIM_BIN_DIR=/tmp
 
 # panic on the least little error
 set -e
@@ -40,8 +42,8 @@ mkdir -p tmp
 
 ./json2wpsscript.py tests/ossim-test01.json tmp/ossim-test01.py
 
-cp -f tests/ossim-test01.sh /usr/local/bin/
-cp -f tmp/ossim-test01.py /Applications/GeoServer.app/Contents/Java/data_dir/scripts/wps/
+cp -f tests/ossim-test01.sh $OSSIM_BIN_DIR/
+cp -f tmp/ossim-test01.py $WPS_SCRIPT_DIR
 tester "T0" "curl -s -S --url $GSHOST?$WPSCMD&Identifier=py:ossim-test01&DataInputs=inputFile=in;outputFile=out;setting=9" "xyzzy"
-rm -f /usr/local/bin/ossim-test01.sh
-rm -f /Applications/GeoServer.app/Contents/Java/data_dir/scripts/wps/ossim-test01.py
+rm -f $OSSIM_BIN_DIR/ossim-test01.sh
+rm -f $WPS_SCRIPT_DIR/ossim-test01.py
