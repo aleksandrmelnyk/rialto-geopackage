@@ -22,8 +22,9 @@ JSON Schema for WPS Interfaces to Ossim/Rialto Command Line Tools
     "name": <string>,           // name of the command line tool; required
     "description": <string>,    // optional
     "inputs": <params_map>,     // required
-    "outputs": <params_map>,     // required
+    "outputs": <params_map>,    // required
     "enums": <enums_map>        // optional
+    "ranges": <ranges_map>      // optional
 }
 
 The description string should contain the version numbers of the tool.
