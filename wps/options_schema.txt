@@ -106,11 +106,10 @@ This is just a JSON <string> literal which must be one of the following:
     - "string"
     - "int"
     - "double"
-    - "geographic-2d"   // string with array of two doubles: (lon, lat)
-    - "geographic-3d"   // string with array of three doubles: (lon, lat, hgt)
-    - "xy"              // string with array of two doubles: (min, max) or (start, end) or (x, y)
-    - "xyz"             // string with an array of three doubles: (x, y, z)
-    - "bbox"    // string with an array of four doubles: (minx, miny, maxx, maxy)
+    - "int:RANGE_NAME"  // int within range. See below
+    - "double:RANGE_NAME"  // double within range. See below
+    - "geo-pos-2d"  // string with array of two doubles: (lon, lat)
+    - "geo-box-2d"  // string with an array of four doubles: (min-lon, min-lat, max-lon, max-lat)
     - "enum:NAME"   // see below
     - "file:raster"
     - "file:elevation"
@@ -128,18 +127,24 @@ the enum named "NAME", as described below.
 *NOTE:* The non-native data types (position, file:*, etc) are just treated as
 strings for now.
 
-
-
 <enums_map>
 -----------
-
 {
     "<name_of_enum>": [ "<value1>", "<value2>", ...],
     "<name_of_enum>": ...,
     ...
 }
 
+Similarly for range of permissible values (datatypes "int:RANGE_NAME" and 
+"double:RANGE_NAME"), the ranges map is provided as follows
 
+<ranges_map>
+-----------
+{
+    "<name_of_range>": [ <min>, <max> ],
+    "<name_of_range>": ...,
+    ...
+}
 
 Examples
 --------
