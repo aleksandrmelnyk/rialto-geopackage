@@ -1,5 +1,19 @@
 #!/usr/bin/env python
 
+# Because I can't seem to get GeoServer's WPS/Python interface to accept
+# any annotations for the input and output parameters, we're just going to
+# pass the info we need at the end of the parameter's description string.
+# Each param will have a description string formatted like this:
+#
+#     blah blah blah [TYPE] [ANNOTATION]
+#
+# The [TYPE] part is required, and TYPE will be one of the native python types.
+# 
+# The [ANNOTATION] part is optional. If present and TYPE is string, then the
+# ANNOTATION will be a list of the enum values. If present and TYPE is int or
+# double, then the ANNOTATION will be a list of the range values, i.e. min
+# and max.
+
 import io
 import json
 import os.path
