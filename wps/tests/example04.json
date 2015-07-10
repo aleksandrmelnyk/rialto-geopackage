@@ -1,6 +1,8 @@
 {
     "name": "wms_loader",
-    "description": "loads the given file into the WMS server in the cluster with the most free disk space",
+    "description": {
+        "long_description": "loads the given file into the WMS server in the cluster with the most free disk space"
+    },
     "inputs": {
         "file": {
             "datatype": "string:raster_file",

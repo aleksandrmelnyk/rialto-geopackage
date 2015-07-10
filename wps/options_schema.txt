@@ -20,14 +20,12 @@ JSON Schema for WPS Interfaces to Ossim/Rialto Command Line Tools
 
 {
     "name": <string>,           // name of the command line tool; required
-    "description": <string>,    // optional
+    "description": <descriptiopn_map>,    // optional
     "inputs": <params_map>,     // required
     "outputs": <params_map>,    // required
     "enums": <enums_map>        // optional
     "ranges": <ranges_map>      // optional
 }
-
-The description string should contain the version numbers of the tool. // TODO
 
 
 
@@ -68,6 +66,14 @@ then WPS will return to the calling client an output parameter named "url"
 with the value "http://example.com/foo".
 
 
+<description_map>
+-----------------
+
+{
+    "long_description": <string>,       // optional
+    "short_description": <string>,      // optional
+    "version": <string>                 // optional
+}
 
 <params_map>
 ------------

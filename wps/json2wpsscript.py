@@ -81,7 +81,7 @@ class DataType:
         return
     
     def get_python_name(self):
-        if self.is_string(): return 'string'
+        if self.is_string(): return 'str'
         if self.is_int(): return 'int'
         if self.is_double(): return 'float'
         if self.is_enum(): return 'str'
@@ -153,7 +153,7 @@ class Parse:
     enums = {}
     ranges = {}
     name = ""
-    description = ""
+    description = {}
 
     def __init__(self, root):
         check_is_type(root, dict, 'Root is not a map')
@@ -163,9 +163,9 @@ class Parse:
         self.name = root['name']
 
         if 'description' in root:
-            ######### TODO check_is_type(root['description'], dict, 'description is not a map')
-            self.description = root['description']
-
+            check_is_type(root['description'], dict, 'description is not a map')
+            self.description = self.parse_description(root['description'])
+        
         if 'enums' in root:
             self.enums = self.parse_enums(root['enums'])
 
@@ -178,6 +178,19 @@ class Parse:
         check_contains('outputs', root, 'root key "outputs" not found')
         self.outputs = self.parse_params(root['outputs'])
 
+    def parse_description(self, data):
+        descr = { 'long_description': '', 'short': '', 'version': '' }
+        if 'long_description' in data:
+            check_is_string(data['long_description'], 'long_description is not a string')
+            descr['long'] = data['long_description']
+        if 'short_description' in data:
+            check_is_string(data['short_description'], 'short_description is not a string')
+            descr['short'] = data['short_description']
+        if 'version' in data:
+            check_is_string(data['version'], 'version is not a string')
+            self.description['version'] = data['version']
+        return descr
+        
     def parse_enum_values(self, name, values):
         if len(values) == 0:
             raise ValueError('Enum values not specified')
@@ -237,6 +250,10 @@ class Parse:
             params.append(param)
         return params
 
+    def get_full_description(self):
+        if len(self.description.values()) == 0: return ""
+        return ", ".join(self.description.values())
+        return s
 
 
 class Script:
@@ -259,12 +276,13 @@ class Script:
         self.fprintf('\n')
         self.fprintf('@process(\n')
         self.fprintf('    title = \'%s\',\n' % self._table.name)
-        ######## TODO self.fprintf('    description = \'%s\',\n' % escapify(self._table.description))
+        self.fprintf('    description = \'%s\',\n' % escapify(self._table.get_full_description()))
         
     def print_run_block(self):
         self.fprintf('def run(')
         if self._table.inputs:
             params = self._table.inputs
+            params = sorted(params, key=lambda p: p.name)
             for param in params:
                 self.fprintf(param.get_option_name())
                 if param != params[-1]:
@@ -274,6 +292,7 @@ class Script:
         self.fprintf('    cmd = "%s/%s.sh' % ("/Users/mgerlek/work/dev/rialto-geopackage/wps/tests", self._table.name))
         if self._table.inputs:
             params = self._table.inputs
+            params = sorted(params, key=lambda p: p.name)
             for param in params:
                 self.fprintf(" --%s %s" % (param.name, param.get_option_name()))
         self.fprintf('"\n')
@@ -284,7 +303,7 @@ class Script:
     print "Return code: ", p.returncode
     print out.rstrip(), err.rstrip()
     
-    results = {"stdout":out, "stderr": err, "status": p.returncode}
+    results = {"stdout": out, "stderr": err, "status": p.returncode}
     p = re.compile('^\[(\w+)\]\s*(.*)')
     for line in out.split("\\n"):
         ms = p.findall(line)
@@ -297,6 +316,7 @@ class Script:
     def print_inputs_list(self):
         self.fprintf('    inputs = {\n')
         params = self._table.inputs
+        params = sorted(params, key=lambda p: p.name)
         for param in params:
             param_name = param.get_option_name()
             datatype_name = param.datatype.get_python_name()
@@ -308,13 +328,13 @@ class Script:
         self.fprintf('    }')
 
     def print_outputs_list(self):
-        self.fprintf("""
-    outputs = {
+        self.fprintf("""    outputs = {
         'status': (int, 'the return code from the script [int]'),
-        'stdout': (str, 'stdout from the script [string]'),
-        'stderr': (str, 'stderr from the script [string]')""")
+        'stdout': (str, 'stdout from the script [str]'),
+        'stderr': (str, 'stderr from the script [str]')""")
 
         params = self._table.outputs
+        params = sorted(params, key=lambda p: p.name)
         for param in params:
 
             self.fprintf(',\n')

@@ -1,6 +1,5 @@
 {
     "name": "ossim-test01",
-    "description": "a test case",
     "inputs": {
         "setting": {
             "description": "some number",
