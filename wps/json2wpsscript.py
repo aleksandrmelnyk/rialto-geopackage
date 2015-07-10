@@ -7,187 +7,278 @@ import sys
 
 
 g_datatypes = [
-    'string',
     'int',
     'double',
-    'position',
-    'bbox',
-    'file:raster',
-    'file:elevation',
-    'file:lidar',
-    'file:geopackage',
-    'file:text',
-    'url:wms'
+    'string',
+    'string:raster_file',
+    'string:elevation_file',
+    'string:lidar_file',
+    'string:geopackage_file',
+    'string:text_file',
+    'string:wms_url',
+    'geo_pos_2d',
+    'geo_box_2d'
 ]
 
+def escapify(s):
+    return s.replace("'", "\\'")
+
+def check_is_string(obj, msg):
+    if not obj: return
+    if not isinstance(obj, basestring):
+        raise TypeError(msg)
+
+def check_is_instance(obj, typ, msg):
+    if not obj: return
+    if not isinstance(obj, typ):
+        raise TypeError(msg)
+
+def check_is_type(obj, typ, msg):
+    if not obj: return
+    if type(obj) != typ:
+        raise TypeError(msg)
+
+def check_contains(item, items, msg):
+    if not item: return
+    if item not in items:
+        raise ValueError(msg)
 
 
-def fprintf(file, str):
-    file.write(str)
-
-
-
-class Parse:
+class DataType:
+    _text = None
+    enum_values = None
+    min = None
+    max = None
+    range_type = None
+    enum_type = None
     
-    def parse_description(self, description):
-        if not isinstance(description, basestring): raise TypeError('Description is not a string')
+    def __init__(self, text, enums, ranges):
+        check_is_string(text, 'datatype is not a string')
 
-
-    def parse_datatype(self, datatype, enums):
-        if not isinstance(datatype, basestring): raise TypeError('Datatype is not a string')
+        self._text = text 
         
-        if datatype.startswith('enum:'):
-            enum_type = datatype[5:]
-            if enum_type not in enums:
-                raise ValueError('Enum datatype not defined')
-        else:
-            if datatype not in g_datatypes:
-                raise ValueError('Datatype not valid: %s' % datatype)
-
-    def parse_enum_values(self, enum_values):
-        if len(enum_values) == 0:
-            raise ValueError('Enum values not specified')
-        for value in enum_values:
-            if not isinstance(value, basestring): raise TypeError('Enum value is not a string')
-
-    def parse_enums(self, enums):
-        if type(enums) is not dict: raise TypeError('Enums is not a map')
-        for enum in enums:
-            self.parse_enum_values(enums[enum])
-
-    def parse_param(self, data, enums):
-        if type(data) is not dict: raise TypeError('Param is not a map')
-        
-        if 'datatype' not in data:
-            raise ValueError('Param key "datatype" not found')
-
-        self.parse_datatype(data['datatype'], enums)
-        
-        if 'description' in data:
-            self.parse_description(data['description'])
-        else:
-            data['description'] = ''
-        
-    def parse_params(self, data, enums):
-        if type(data) is not dict: raise TypeError('Params is not a map')
-        
-        for k in data:
-            self.parse_param(data[k], enums)
-
-    def parse_root(self, data):
-        if type(data) is not dict: raise TypeError('Root is not a map')
-
-        if 'name' not in data:
-            raise ValueError('Root key "name" not found')
-
-        if 'description' not in data:
-            data['description'] = ''
-
-        if 'enums' in data:
-            self.parse_enums(data['enums'])
-        else:
-            data['enums'] = {}
-
-        if 'inputs' not in data:
-            raise ValueError('Root key "inputs" not found')
-        self.parse_params(data['inputs'], data['enums'])
-
-        if 'outputs' not in data:
-            raise ValueError('Root key "outputs" not found')
-        self.parse_params(data['outputs'], data['enums'])
-
-
-
-class Dump:
+        if self._text.startswith('enum:'):
+            self.enum_type = self._text[5:]
+            check_contains(self.enum_type, enums, 'enum datatype not defined')
+            self.enum_values = list(enums[self.enum_type])
+            return
+            
+        if self._text.startswith('int:'):
+            self.range_type = self._text[4:]
+            check_contains(self.range_type, ranges, 'range datatype not defined: %s' % self.range_type)
+            self.min = ranges[self.range_type][0]
+            self.max = ranges[self.range_type][1]
+            return
+            
+        if self._text.startswith('double:'):
+            range_type = self._text[7:]
+            check_contains(self.range_type, ranges, 'range datatype not defined: %s' % self.range_type)
+            self.min = ranges[range_type][0]
+            self.max = ranges[range_type][1]
+            return
+            
+        check_contains(self._text, g_datatypes, 'datatype not valid: %s' % self._text)
+        return
     
-    def dump_enums(self, enums):
-        print 'Enums:'
-        for enum in enums:
-            print '    %s:' % enum,
-            for value in enums[enum]:
-                print value,
-            print
+    def get_python_name(self):
+        if self.is_string(): return 'string'
+        if self.is_int(): return 'int'
+        if self.is_double(): return 'float'
+        if self.is_enum(): return 'str'
+        if self._text == 'geo_pos_2d': return 'str'
+        if self._text == 'geo_box_2d': return 'str'
+        raise ValueError('Datatype not valid: %s' % datatype)
 
-    def dump_params(self, params, label):
-        print '%s:' % label
-        for param in params:
-            attrs = params[param]
-            print '    %s' % param
-            print '        Datatype:', attrs['datatype']
-            print '        Description:', attrs['description']
+    def is_enum(self):
+        return self._text.startswith('enum:')
 
-    def dump(self, data):
-        print 'Ttile:', data['name']
-        print 'Description:', data['description']
-        self.dump_enums(data['enums'])
-        self.dump_params(data['inputs'], 'Inputs')
-        self.dump_params(data['outputs'], 'Outputs')
-
-
-
-class Script:
-    json = None
-
-    def __init__(self, data):
-        self.json = data
+    def is_ranged(self):
+        return self._text.startswith('int:') or self._text.startswith('double:')
         
+    def is_string(self):
+        return self._text == 'string' or self._text.startswith('string:')
+        
+    def is_int(self):
+        return self._text == 'int' or self._text.startswith('int:')
+
+    def is_double(self):
+        return self._text == 'double' or self._text.startswith('double:')
+
+    def get_annotation(self):
+        values = []
+        if self.is_enum():
+            values = self.enum_values
+            text = ",".join([s for s in values])
+            return '[' + text + ']'
+        if self.is_ranged():
+            text = str(self.min) + ',' + str(self.max)
+            return '[' + text + ']'
+
+        return ''
+    
+
+
+class Param:
+    name = None
+    datatype = None
+    description = None
+    
+    def __init__(self, name, datatype, description):
+        check_is_instance(datatype, DataType, 'datatype type error: %s is not DataType' % name)
+        self.name = name
+        self.datatype = datatype
+        self.description = description
+
     # In the JSON the switch name might be "output-file",
     # but that's not a legal Python name, so do a s/-/__/
     #
     # To simplify life, we do not support switch names
     # already containing "__". 
-    @staticmethod
-    def canonicalize_option_name(name):
-        if '__' in name:
-            raise ValueError("invalid option name: %s" % name)
-        new_name = name.replace('-', '__')
+    def get_option_name(self):
+        if '__' in self.name:
+            raise ValueError("invalid option name: %s" % self.name)
+        new_name = self.name.replace('-', '__')
         return new_name
 
-    @staticmethod
-    def canonicalize_datatype_name(str):
-        if str == 'string': return 'str'
-        if str == 'int': return 'int'
-        if str == 'double': return 'float'
-        if str == 'position': return 'str'
-        if str.startswith('enum:'): return 'str'
-        if str.startswith('file:'): return 'str'
-        if str.startswith('url:'): return 'str'
-        raise ValueError('unknown datatype: %s' % str)
+    def get_full_description(self):
+        descr = self.description
+        typ = self.datatype.get_python_name()
+        anno = self.datatype.get_annotation()
+        return '%s [%s] %s' % (descr, typ, anno)
 
-    def print_header_block(self, f):
-        fprintf(f, '#!/usr/bin/env python\n')
-        fprintf(f, '\n')
-        fprintf(f, 'from geoserver.wps import process\n')
-        fprintf(f, 'from com.vividsolutions.jts.geom import Geometry\n')
-        fprintf(f, 'import re\n')
-        fprintf(f, 'from subprocess import Popen, PIPE\n')
-        fprintf(f, '\n')
-        fprintf(f, '@process(\n')
-        fprintf(f, '    title = \'%s\',\n' % self.json['name'])
-        fprintf(f, '    description = \'%s\',\n' % self.json['description'])
-        
-    def print_run_block(self, f):
-        fprintf(f, 'def run(')
-        if self.json['inputs']:
-            params = self.json['inputs'].keys()
-            params.sort()
-            for param in params:
-                param_name = Script.canonicalize_option_name(param)
-                fprintf(f, param_name)
-                if param_name != params[-1]:
-                    fprintf(f, ', ')
-        fprintf(f, '):\n')
+            
+class Parse:
+    inputs = []
+    outputs = []
+    enums = {}
+    ranges = {}
+    name = ""
+    description = ""
 
-        fprintf(f, '    cmd = "%s/%s.sh' % ("/Users/mgerlek/work/dev/rialto-geopackage/wps/tests", self.json['name']))
-        if self.json['inputs']:
-            params = self.json['inputs'].keys()
-            params.sort()
-            for param in params:
-                param_name = Script.canonicalize_option_name(param)
-                fprintf(f, " --%s %s" % (param, param_name))
-        fprintf(f, '"\n')
+    def __init__(self, root):
+        check_is_type(root, dict, 'Root is not a map')
+
+        check_contains('name', root, 'root key "name" not found')
+        check_is_string(root['name'], 'description is not a string')
+        self.name = root['name']
+
+        if 'description' in root:
+            ######### TODO check_is_type(root['description'], dict, 'description is not a map')
+            self.description = root['description']
+
+        if 'enums' in root:
+            self.enums = self.parse_enums(root['enums'])
+
+        if 'ranges' in root:
+            self.ranges = self.parse_ranges(root['ranges'])
+
+        check_contains('inputs', root, 'root key "inputs" not found')
+        self.inputs = self.parse_params(root['inputs'])
+
+        check_contains('outputs', root, 'root key "outputs" not found')
+        self.outputs = self.parse_params(root['outputs'])
+
+    def parse_enum_values(self, name, values):
+        if len(values) == 0:
+            raise ValueError('Enum values not specified')
+        for value in values:
+            check_is_string(value, 'enum value is not a string')
+        return list(values)
+
+    def parse_enums(self, enums):
+        check_is_type(enums, dict, 'enums is not a map')
+        es = {}
+        for enum in enums:
+            v = self.parse_enum_values(enum, enums[enum])
+            es[enum] = v
+        return es
+
+    def parse_range_values(self, name, values):
+        if len(values) != 2:
+            raise ValueError('Incorrect number of range values')
+        for value in values:
+            if value == "+inf" or value == "-inf":
+                pass
+            elif type(value) is float:
+                pass
+            elif type(value) is int:
+                pass
+            else:
+                raise TypeError('Unknown range value: %s' % value)
+        return (values[0], values[1])
+    
+    def parse_ranges(self, ranges):
+        check_is_type(ranges, dict, 'ranges is not a map')
+        rs = {}
+        for range in ranges:
+            check_is_type(ranges[range], list, 'Range is not a list: %s' % range)
+            r = self.parse_range_values(range, ranges[range])
+            rs[range] = r 
+        return rs
+            
+    def parse_param(self, name, data):
+        check_is_type(data, dict, 'param is not a map')
         
-        fprintf(f, """
+        check_contains('datatype', data, 'param key "datatype" not found')
+        datatype = DataType(data['datatype'], self.enums, self.ranges)
+        
+        description = ''
+        if 'description' in data:
+            description = data['description']
+        
+        return Param(name, datatype, description)
+        
+    def parse_params(self, data):
+        check_is_type(data, dict, 'params is not a map')
+        
+        params = []
+        for k in data:
+            param = self.parse_param(k, data[k])
+            params.append(param)
+        return params
+
+
+
+class Script:
+    _table = None
+    _f = None
+    
+    def __init__(self, table):
+        self._table = table
+            
+    def fprintf(self, str):
+        self._f.write(str)
+
+    def print_header_block(self):
+        self.fprintf('#!/usr/bin/env python\n')
+        self.fprintf('\n')
+        self.fprintf('from geoserver.wps import process\n')
+        self.fprintf('from com.vividsolutions.jts.geom import Geometry\n')
+        self.fprintf('import re\n')
+        self.fprintf('from subprocess import Popen, PIPE\n')
+        self.fprintf('\n')
+        self.fprintf('@process(\n')
+        self.fprintf('    title = \'%s\',\n' % self._table.name)
+        ######## TODO self.fprintf('    description = \'%s\',\n' % escapify(self._table.description))
+        
+    def print_run_block(self):
+        self.fprintf('def run(')
+        if self._table.inputs:
+            params = self._table.inputs
+            for param in params:
+                self.fprintf(param.get_option_name())
+                if param != params[-1]:
+                    self.fprintf(', ')
+        self.fprintf('):\n')
+
+        self.fprintf('    cmd = "%s/%s.sh' % ("/Users/mgerlek/work/dev/rialto-geopackage/wps/tests", self._table.name))
+        if self._table.inputs:
+            params = self._table.inputs
+            for param in params:
+                self.fprintf(" --%s %s" % (param.name, param.get_option_name()))
+        self.fprintf('"\n')
+        
+        self.fprintf("""
     p = Popen(cmd , shell=True, stdout=PIPE, stderr=PIPE)
     out, err = p.communicate()
     print "Return code: ", p.returncode
@@ -203,55 +294,52 @@ class Script:
     return results
 """)
 
-    def print_inputs_list(self, f):
-        fprintf(f, '    inputs = {\n')
-        sorted_list = sorted(self.json['inputs'])
-        for param in sorted_list:
+    def print_inputs_list(self):
+        self.fprintf('    inputs = {\n')
+        params = self._table.inputs
+        for param in params:
+            param_name = param.get_option_name()
+            datatype_name = param.datatype.get_python_name()
+            description = escapify(param.get_full_description())
+            self.fprintf('        \'%s\': (%s, \'%s\')' % (param_name, datatype_name, description))
+            if param != params[-1]:
+                self.fprintf(',')
+            self.fprintf('\n')
+        self.fprintf('    }')
 
-            attrs = self.json['inputs'][param]
-            param_name = Script.canonicalize_option_name(param)
-            datatype_name = Script.canonicalize_datatype_name(attrs['datatype'])
-            descr = '%s [%s]' % (attrs['description'], attrs['datatype'])
-            fprintf(f, '        \'%s\': (%s, \'%s\')' % (param_name, datatype_name, descr))
-            if param != sorted_list[-1]:
-                fprintf(f, ',')
-            fprintf(f, '\n')
-        fprintf(f, '    }')
-
-    def print_outputs_list(self, f):
-        fprintf(f, """
+    def print_outputs_list(self):
+        self.fprintf("""
     outputs = {
         'status': (int, 'the return code from the script [int]'),
         'stdout': (str, 'stdout from the script [string]'),
         'stderr': (str, 'stderr from the script [string]')""")
 
-        sorted_list = sorted(self.json['outputs'])
-        for param in sorted_list:
+        params = self._table.outputs
+        for param in params:
 
-            fprintf(f, ',\n')
-            attrs = self.json['outputs'][param]
-            param_name = Script.canonicalize_option_name(param)
-            datatype_name = Script.canonicalize_datatype_name(attrs['datatype'])
-            descr = '%s [%s]' % (attrs['description'], attrs['datatype'])
-            fprintf(f, '        \'%s\': (%s, \'%s\')' % (param_name, datatype_name, descr))
+            self.fprintf(',\n')
+            param_name = param.get_option_name()
+            datatype_name = param.datatype.get_python_name()
+            description = escapify(param.get_full_description())
+            self.fprintf('        \'%s\': (%s, \'%s\')' % (param_name, datatype_name, description))
 
-        fprintf(f, """
+        self.fprintf("""
     }
 """)
-        fprintf(f, ')\n')
+        self.fprintf(')\n')
 
-    def generate_script(self, filename):
-        f = open(filename, "w")
-        self.print_header_block(f)
+    def generate(self, filename):
+        self._f = open(filename, "w")
+        self.print_header_block()
 
-        self.print_inputs_list(f)
-        fprintf(f, ',\n')
+        self.print_inputs_list()
+        self.fprintf(',\n')
 
-        self.print_outputs_list(f)
-        fprintf(f, '\n')
+        self.print_outputs_list()
+        self.fprintf('\n')
 
-        self.print_run_block(f)
-        f.close()
+        self.print_run_block()
+        self._f.close()
 
 
 
@@ -260,19 +348,14 @@ def main(jsonfile, pyfile):
     with io.open(jsonfile, 'r') as infile:
         print '============ %s ============' % os.path.basename(jsonfile)
         data = json.load(infile)
-        parse = Parse()
-        parse.parse_root(data)
+        table = Parse(data)
         
         #print '------------ json ------------'
         #print data
 
-        #print '------------ dump ------------'
-        dump = Dump()
-        #dump.dump(data)
-
         print '------------ python ------------'
-        script = Script(data)
-        script.generate_script(pyfile)
+        script = Script(table)
+        script.generate(pyfile)
 
 
 if len(sys.argv) != 3:
