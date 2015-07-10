@@ -3,12 +3,12 @@
     "description": "test hyphen conversion",
     "inputs": {
         "input-file": {
-            "datatype": "file:raster"
+            "datatype": "string:raster_file"
         }
     },
     "outputs": {
         "output-file": {
-            "datatype": "file:raster"
+            "datatype": "string:raster_file"
         }
     }
 }

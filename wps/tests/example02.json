@@ -12,7 +12,7 @@
             "required": true    
         },
         "observer": {         
-            "datatype": "geo-pos-2d",
+            "datatype": "geo_pos_2d",
             "description": "Geographic position of observer (lon-deg, lat-deg, hgt-above-ground)",
             "required": true    
         },
@@ -27,7 +27,7 @@
             "required": false    
         },
         "dem": {
-            "datatype": "file:elevation",
+            "datatype": "string:elevation_file",
             "description": "Optional DEM file to se in lieu of default elevation database.",
             "required": false    
         },
@@ -46,7 +46,7 @@
             "required": false    
         },
         "lut": {
-            "datatype": "file:text",
+            "datatype": "string:text_file",
             "description": "Specifies the optional lookup table filename for mapping the single-band output image to an RGB. The LUT provided must be in the ossimIndexToRgbLutFilter format and must handle the three output viewshed values (see --values option).",
             "required": false    
         },
@@ -66,12 +66,12 @@
             "required": false    
         },
         "outputFile": {
-            "datatype": "url:wms",
+            "datatype": "string:wms_url",
             "description": "The URL/filename of the WMS server where the file is now accessible",
             "required": true
         },
         "horizonFile": {
-            "type": "url:wms",
+            "datatype": "string:wms_url",
             "description": "If specified, outputs the max elevation angles for all azimuths to specified URL/filename, for horizon profiling.",
             "required": false    
         }
@@ -79,7 +79,7 @@
     "outputs": {},
     "ranges" : {
        "azimuth_range": [ 0.0, 360.0 ],
-       "positive_range": [ 0, "inf"],
+       "positive_range": [ 0, "+inf"],
        "byte_range": [ 0, 255 ]
     }
 }

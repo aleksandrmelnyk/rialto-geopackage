@@ -19,7 +19,7 @@
     "outputs": {
         "url": {
             "description": "generated URL of output",
-            "datatype": "url:wms"
+            "datatype": "string:wms_url"
         }
     }
 }

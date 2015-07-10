@@ -3,13 +3,13 @@
     "description": "loads the given file into the WMS server in the cluster with the most free disk space",
     "inputs": {
         "file": {
-            "datatype": "file:raster",
+            "datatype": "string:raster_file",
             "description": "the file to be ingested"
         }
     },
     "outputs": {
         "url_endpoint": {
-            "datatype": "url:wms",
+            "datatype": "string:wms_url",
             "description": "The URL of the WMS server where the file is now accessible"
         }
     }

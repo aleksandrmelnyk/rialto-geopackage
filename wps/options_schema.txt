@@ -27,7 +27,7 @@ JSON Schema for WPS Interfaces to Ossim/Rialto Command Line Tools
     "ranges": <ranges_map>      // optional
 }
 
-The description string should contain the version numbers of the tool.
+The description string should contain the version numbers of the tool. // TODO
 
 
 
@@ -109,14 +109,15 @@ This is just a JSON <string> literal which must be one of the following:
     - "double"
     - "int:RANGE_NAME"  // int within range. See below
     - "double:RANGE_NAME"  // double within range. See below
-    - "geo-pos-2d"  // string with array of two doubles: (lon, lat)
-    - "geo-box-2d"  // string with an array of four doubles: (min-lon, min-lat, max-lon, max-lat)
+    - "geo_pos_2d"  // string with array of two doubles: (lon, lat)
+    - "geo_box_2d"  // string with an array of four doubles: (min-lon, min-lat, max-lon, max-lat)
     - "enum:NAME"   // see below
-    - "file:raster"
-    - "file:elevation"
-    - "file:lidar"
-    - "file:geopackage"
-    - "file:text"
+    - "string:raster_filen"
+    - "string:elevation_file"
+    - "string:lidar_file"
+    - "string:geopackage_file"
+    - "string:text_file"
+    - "string:wms_url"
 
 Note we distinguish filenames from plain strings, and we also indicate the type
 of file that is being used. (We do not use the filename extension, as it is
@@ -146,6 +147,9 @@ Similarly for range of permissible values (datatypes "int:RANGE_NAME" and
     "<name_of_range>": ...,
     ...
 }
+
+The min and max values can be ints, floats, or "+inf" or "-inf". 
+
 
 Examples
 --------

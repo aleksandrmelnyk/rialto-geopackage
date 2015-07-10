@@ -8,7 +8,7 @@
         },
         "outfile": {
             "description": "output PNG file",
-            "datatype": "file:raster"
+            "datatype": "string:raster_file"
         }
     },
     "enums": {
