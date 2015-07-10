@@ -3,8 +3,7 @@
     "description": {
         "version" : "1.00",
         "short_description": "OSSIM Viewshed Utility",
-        "long_description": "Utility for computing the viewshed from a given observer position for a "
-                            "specified area of interest."
+        "long_description": "Utility for computing the viewshed from a given observer position for a specified area of interest."
      },
      "inputs": {
         "radius": {         
@@ -38,35 +37,27 @@
         },
         "gsd": {
             "datatype": "double:positive_range",
-            "description": "Product resolution in meters-per-pixel. Defaults to the best resolution"
-                           " of elevation files referenced.",
+            "description": "Product resolution in meters-per-pixel. Defaults to the best resolution of elevation files referenced.",
             "required": false    
         },
         "reticle": {
             "datatype": "int:positive_range",
-            "description": "Size (in pixels) of reticle centered on observer's position. If "
-                           "non-zero, a border is drawn delineating the ROI.",
+            "description": "Size (in pixels) of reticle centered on observer's position. If non-zero, a border is drawn delineating the ROI.",
             "required": false    
         },
         "lut": {
             "datatype": "file:text",
-            "description": "Specifies the optional lookup table filename for "
-                           "mapping the single-band output image to an RGB. The "
-                           "LUT provided must be in the ossimIndexToRgbLutFilter "
-                           "format and must handle the three output viewshed "
-                           "values (see --values option).",
+            "description": "Specifies the optional lookup table filename for mapping the single-band output image to an RGB. The LUT provided must be in the ossimIndexToRgbLutFilter format and must handle the three output viewshed values (see --values option).",
             "required": false    
         },
         "visible_index": {
             "datatype": "int:byte_range",
-            "description": "Specifies the pixel values (0-255) for the pixels representing"
-                           "visible terrain.",
+            "description": "Specifies the pixel values (0-255) for the pixels representing visible terrain.",
             "required": false    
         },
         "hidden_index": {
             "datatype": "int:byte_range",
-            "description": "Specifies the pixel values (0-255) for the pixels representing"
-                           "hidden terrain.",
+            "description": "Specifies the pixel values (0-255) for the pixels representing hidden terrain.",
             "required": false    
         },
         "reticle_index": {
@@ -81,10 +72,9 @@
         },
         "horizonFile": {
             "type": "url:wms",
-            "description": "If specified, outputs the max elevation angles for all azimuths to "
-                           "specified URL/filename, for horizon profiling.",
+            "description": "If specified, outputs the max elevation angles for all azimuths to specified URL/filename, for horizon profiling.",
             "required": false    
-        },
+        }
     },
     "outputs": {},
     "ranges" : {
