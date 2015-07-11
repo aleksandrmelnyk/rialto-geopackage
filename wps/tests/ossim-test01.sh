@@ -25,11 +25,4 @@ echo Setting: ${6}
 url="xyzzy"
 echo "[url] $url"
 
-#cp $infile $outfile
-
-#echo "vvvv" > $outfile
-#cat $infile >> $outfile
-#echo $@ >> $outfile
-#echo "^^^^" >> $outfile
-
 echo Bye.

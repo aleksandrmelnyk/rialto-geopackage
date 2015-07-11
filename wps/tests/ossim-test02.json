@@ -1,0 +1,27 @@
+{
+    "name": "ossim-test02",
+    "inputs": {
+        "mydouble": {
+            "description": "a double",
+            "datatype": "double"
+        },
+        "myint": {
+            "description": "an int",
+            "datatype": "int"
+        },
+        "mypos": {
+            "description": "a pos",
+            "datatype": "geo_pos_2d"
+        },
+        "mystring": {
+            "description": "a string",
+            "datatype": "string"
+        }
+    },
+    "outputs": {
+        "url": {
+            "description": "generated URL of output",
+            "datatype": "string:wms_url"
+        }
+    }
+}

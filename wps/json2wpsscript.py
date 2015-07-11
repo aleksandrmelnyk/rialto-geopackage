@@ -308,16 +308,23 @@ class Script:
             params = self._table.inputs
             params = sorted(params, key=lambda p: p.name)
             for param in params:
-                self.fprintf(" --%s %s" % (param.name, param.get_option_name()))
-        self.fprintf('"\n')
+                self.fprintf(" --%s %s" % (param.get_option_name(), '%s'))
+            self.fprintf("\" % (")
+            params = self._table.inputs
+            params = sorted(params, key=lambda p: p.name)
+            for param in params:
+                self.fprintf("%s" % (param.name))
+                if param != params[-1]: self.fprintf(', ')
+            self.fprintf(")")
+        self.fprintf("\n")
         
         self.fprintf("""
-    p = Popen(cmd , shell=True, stdout=PIPE, stderr=PIPE)
+    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
     out, err = p.communicate()
     print "Return code: ", p.returncode
     print out.rstrip(), err.rstrip()
     
-    results = {"stdout": out, "stderr": err, "status": p.returncode}
+    results = { "stdout": out, "stderr": err, "status": p.returncode }
     p = re.compile('^\[(\w+)\]\s*(.*)')
     for line in out.split("\\n"):
         ms = p.findall(line)

@@ -8,6 +8,8 @@ WPSCMD="service=wps&version=1.0.0&request=Execute"
 WPS_SCRIPT_DIR=/Applications/GeoServer.app/Contents/Java/data_dir/scripts/wps
 OSSIM_BIN_DIR=/tmp
 
+RETSTATUS="<wps:Output><ows:Identifier>status</ows:Identifier><ows:Title>the return code from the script [int]</ows:Title><wps:Data><wps:LiteralData>0</wps:LiteralData></wps:Data></wps:Output>"
+
 # panic on the least little error
 set -e
 
@@ -17,33 +19,49 @@ function tester {
     expected=$3
 
     echo "Test: $name"
-
+    
     out=`$cmd`
+    #echo $out
     if [[ "$out" == *"$expected"* ]]
     then
         echo "  pass"
     else
-        echo "  FAIL"
+        echo "  FAIL: $out"
         echo "  CMD: $cmd"
         echo "  OUTPUT: $out"
         exit 1
     fi    
+
+  if [[ "$out" == *"$RETSTATUS"* ]]
+  then
+      echo "  pass"
+  else
+      echo "  FAIL: nonzero status"
+      #echo "  CMD: $cmd"
+      echo "  OUTPUT: $out"
+      exit 1
+  fi    
 }
 
 rm -fr ./tmp/
 mkdir -p tmp
 
 # verify some example JSON files: just make sure the generator script doesn't crash
-./json2wpsscript.py tests/example01.json tmp/example01.py
-./json2wpsscript.py tests/example02.json tmp/example02.py
-./json2wpsscript.py tests/example03.json tmp/example03.py
-./json2wpsscript.py tests/example04.json tmp/example04.py
-./json2wpsscript.py tests/example05.json tmp/example05.py
 
-./json2wpsscript.py tests/ossim-test01.json tmp/ossim-test01.py
+for i in tests/example??.json tests/ossim-test??.json
+do
+  ./json2wpsscript.py $i tmp/`basename $i .json`.py
+done
 
 cp -f tests/ossim-test01.sh $OSSIM_BIN_DIR/
 cp -f tmp/ossim-test01.py $WPS_SCRIPT_DIR
-tester "T0" "curl -s -S --url $GSHOST?$WPSCMD&Identifier=py:ossim-test01&DataInputs=inputFile=in;outputFile=out;setting=9" "xyzzy"
+tester "ossim01" "curl -s -S --url $GSHOST?$WPSCMD&Identifier=py:ossim-test01&DataInputs=inputFile=in;outputFile=out;setting=9" "xyzzy"
 rm -f $OSSIM_BIN_DIR/ossim-test01.sh
 rm -f $WPS_SCRIPT_DIR/ossim-test01.py
+
+cp -f tests/ossim-test02.sh $OSSIM_BIN_DIR/
+cp -f tmp/ossim-test02.py $WPS_SCRIPT_DIR
+XXX="%2212.34%2056.78%22"
+tester "ossim02" "curl -s -S --url $GSHOST?$WPSCMD&Identifier=py:ossim-test02&DataInputs=myint=12;mydouble=34.0;mystring=Yow;mypos=$XXX" "xyzzy"
+rm -f $OSSIM_BIN_DIR/ossim-test02.sh
+rm -f $WPS_SCRIPT_DIR/ossim-test02.py
