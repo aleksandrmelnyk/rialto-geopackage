@@ -20,13 +20,12 @@ JSON Schema for WPS Interfaces to Ossim/Rialto Command Line Tools
 
 {
     "name": <string>,           // name of the command line tool; required
-    "description": <string>,    // optional
+    "description": <descriptiopn_map>,    // optional
     "inputs": <params_map>,     // required
-    "outputs": <params_map>,     // required
+    "outputs": <params_map>,    // required
     "enums": <enums_map>        // optional
+    "ranges": <ranges_map>      // optional
 }
-
-The description string should contain the version numbers of the tool.
 
 
 
@@ -67,6 +66,14 @@ then WPS will return to the calling client an output parameter named "url"
 with the value "http://example.com/foo".
 
 
+<description_map>
+-----------------
+
+{
+    "long_description": <string>,       // optional
+    "short_description": <string>,      // optional
+    "version": <string>                 // optional
+}
 
 <params_map>
 ------------
@@ -106,14 +113,17 @@ This is just a JSON <string> literal which must be one of the following:
     - "string"
     - "int"
     - "double"
-    - "position"    // string with array of two doubles: "lon lat"
-    - "bbox"        // string with an array of four doubles: "minx, miny, maxx, maxy"
+    - "int:RANGE_NAME"  // int within range. See below
+    - "double:RANGE_NAME"  // double within range. See below
+    - "geo_pos_2d"  // string with array of two doubles: (lon, lat)
+    - "geo_box_2d"  // string with an array of four doubles: (min-lon, min-lat, max-lon, max-lat)
     - "enum:NAME"   // see below
-    - "file:raster"
-    - "file:elevation"
-    - "file:lidar"
-    - "file:geopackage"
-    - "file:text"
+    - "string:raster_filen"
+    - "string:elevation_file"
+    - "string:lidar_file"
+    - "string:geopackage_file"
+    - "string:text_file"
+    - "string:wms_url"
 
 Note we distinguish filenames from plain strings, and we also indicate the type
 of file that is being used. (We do not use the filename extension, as it is
@@ -125,17 +135,26 @@ the enum named "NAME", as described below.
 *NOTE:* The non-native data types (position, file:*, etc) are just treated as
 strings for now.
 
-
-
 <enums_map>
 -----------
-
 {
     "<name_of_enum>": [ "<value1>", "<value2>", ...],
     "<name_of_enum>": ...,
     ...
 }
 
+Similarly for range of permissible values (datatypes "int:RANGE_NAME" and 
+"double:RANGE_NAME"), the ranges map is provided as follows
+
+<ranges_map>
+-----------
+{
+    "<name_of_range>": [ <min>, <max> ],
+    "<name_of_range>": ...,
+    ...
+}
+
+The min and max values can be ints, floats, or "+inf" or "-inf". 
 
 
 Examples

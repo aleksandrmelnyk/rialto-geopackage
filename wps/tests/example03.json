@@ -1,6 +1,8 @@
 {
     "name": "color_tool",
-    "description": "generate a small PNG of a solid color (v1.4)",
+    "description": {
+        "short_description": "generate a small PNG of a solid color (v1.4)"
+    },
     "inputs": {
         "color": {
             "description": "color to use",
@@ -8,7 +10,7 @@
         },
         "outfile": {
             "description": "output PNG file",
-            "datatype": "file:raster"
+            "datatype": "string:raster_file"
         }
     },
     "enums": {

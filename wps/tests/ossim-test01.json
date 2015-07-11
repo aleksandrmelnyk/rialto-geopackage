@@ -1,6 +1,5 @@
 {
     "name": "ossim-test01",
-    "description": "a test case",
     "inputs": {
         "setting": {
             "description": "some number",
@@ -19,7 +18,7 @@
     "outputs": {
         "url": {
             "description": "generated URL of output",
-            "datatype": "url:wms"
+            "datatype": "string:wms_url"
         }
     }
 }
