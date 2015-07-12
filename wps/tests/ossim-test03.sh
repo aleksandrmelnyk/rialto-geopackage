@@ -13,11 +13,11 @@ function check {
 url="xyzzy"
 echo "[url] $url"
 
-check "--mydouble" "$1"
-check "34.0" "$2"
-check "--myint" "$3"
-check "12" "$4"
-check "--mystring" "$5"
-check "Yow" "$6"
+check "--mybox" "$1"
+check "1,2,3,4.5" "$2"
+check "--mycolor" "$3"
+check "blue" "$4"
+check "--mypos" "$5"
+check "12.34,56.78" "$6"
 
 echo Bye.

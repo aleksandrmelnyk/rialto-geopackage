@@ -1,0 +1,25 @@
+{
+    "name": "ossim-test03",
+    "inputs": {
+        "mybox": {
+            "description": "a box",
+            "datatype": "geo_box_2d"
+        },
+        "mypos": {
+            "description": "a pos",
+            "datatype": "geo_pos_2d"
+        },
+        "mycolor": {
+            "datatype": "enum:colors"
+        }
+    },
+    "outputs": {
+        "url": {
+            "description": "generated URL of output",
+            "datatype": "string:wms_url"
+        }
+    },
+    "enums": {
+        "colors": ["red", "green", "blue"]
+    }
+}

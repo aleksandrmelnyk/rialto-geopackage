@@ -94,6 +94,9 @@ class DataType:
         check_contains(self._text, g_datatypes, 'datatype not valid: %s' % self._text)
         return
     
+    def get_name(self):
+        return self._text
+
     def get_python_name(self):
         if self.is_string(): return 'str'
         if self.is_int(): return 'int'
@@ -123,10 +126,10 @@ class DataType:
         if self.is_enum():
             values = self.enum_values
             text = ",".join([s for s in values])
-            return '[' + text + ']'
+            return 'enum_values: ' + text
         if self.is_ranged():
             text = str(self.min) + ',' + str(self.max)
-            return '[' + text + ']'
+            return 'range: ' + text
 
         return ''
     
@@ -155,10 +158,16 @@ class Param:
         return new_name
 
     def get_full_description(self):
-        descr = self.description
-        typ = self.datatype.get_python_name()
+        s = self.description
+
+        typ = self.datatype.get_name()
+        if s != "": s += '\n'
+        s += '# datatype: ' + typ
+        
         anno = self.datatype.get_annotation()
-        return '%s [%s] %s' % (descr, typ, anno)
+        if anno != "": s += '\n' + '# ' + anno
+        
+        return s
 
             
 class Parse:
@@ -190,6 +199,9 @@ class Parse:
         self.inputs = self.parse_params(root['inputs'])
 
         check_contains('outputs', root, 'root key "outputs" not found')
+        root['outputs']['_status'] = { 'datatype': 'int' }
+        root['outputs']['_stdout'] = { 'datatype': 'string' }
+        root['outputs']['_stderr'] = { 'datatype': 'string' }
         self.outputs = self.parse_params(root['outputs'])
 
     def parse_description(self, data):
@@ -324,7 +336,7 @@ class Script:
     print "Return code: ", p.returncode
     print out.rstrip(), err.rstrip()
     
-    results = { "stdout": out, "stderr": err, "status": p.returncode }
+    results = { "_stdout": out, "_stderr": err, "_status": p.returncode }
     p = re.compile('^\[(\w+)\]\s*(.*)')
     for line in out.split("\\n"):
         ms = p.findall(line)
@@ -342,7 +354,7 @@ class Script:
             param_name = param.get_option_name()
             datatype_name = param.datatype.get_python_name()
             description = escapify(param.get_full_description())
-            self.fprintf('        \'%s\': (%s, \'%s\')' % (param_name, datatype_name, description))
+            self.fprintf('        \'%s\': (%s, \'\'\'%s\'\'\')' % (param_name, datatype_name, description))
             if param != params[-1]:
                 self.fprintf(',')
             self.fprintf('\n')
@@ -350,19 +362,17 @@ class Script:
 
     def print_outputs_list(self):
         self.fprintf("""    outputs = {
-        'status': (int, 'the return code from the script [int]'),
-        'stdout': (str, 'stdout from the script [str]'),
-        'stderr': (str, 'stderr from the script [str]')""")
+""")
 
         params = self._table.outputs
         params = sorted(params, key=lambda p: p.name)
         for param in params:
 
-            self.fprintf(',\n')
             param_name = param.get_option_name()
             datatype_name = param.datatype.get_python_name()
             description = escapify(param.get_full_description())
-            self.fprintf('        \'%s\': (%s, \'%s\')' % (param_name, datatype_name, description))
+            self.fprintf('        \'%s\': (%s, \'\'\'%s\'\'\')' % (param_name, datatype_name, description))
+            if param != params[-1]: self.fprintf(',\n')
 
         self.fprintf("""
     }

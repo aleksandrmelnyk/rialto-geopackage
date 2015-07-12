@@ -8,7 +8,7 @@ WPSCMD="service=wps&version=1.0.0&request=Execute"
 WPS_SCRIPT_DIR=/Applications/GeoServer.app/Contents/Java/data_dir/scripts/wps
 OSSIM_BIN_DIR=/tmp
 
-RETSTATUS="<wps:Output><ows:Identifier>status</ows:Identifier><ows:Title>the return code from the script [int]</ows:Title><wps:Data><wps:LiteralData>0</wps:LiteralData></wps:Data></wps:Output>"
+RETSTATUS="<wps:Output><ows:Identifier>_status</ows:Identifier><ows:Title># datatype: int</ows:Title><wps:Data><wps:LiteralData>0</wps:LiteralData></wps:Data></wps:Output>"
 
 # panic on the least little error
 set -e
@@ -56,12 +56,19 @@ done
 cp -f tests/ossim-test01.sh $OSSIM_BIN_DIR/
 cp -f tmp/ossim-test01.py $WPS_SCRIPT_DIR
 tester "ossim01" "curl -s -S --url $GSHOST?$WPSCMD&Identifier=py:ossim-test01&DataInputs=inputFile=in;outputFile=out;setting=9" "xyzzy"
-rm -f $OSSIM_BIN_DIR/ossim-test01.sh
-rm -f $WPS_SCRIPT_DIR/ossim-test01.py
+#rm -f $OSSIM_BIN_DIR/ossim-test01.sh
+#rm -f $WPS_SCRIPT_DIR/ossim-test01.py
 
 cp -f tests/ossim-test02.sh $OSSIM_BIN_DIR/
 cp -f tmp/ossim-test02.py $WPS_SCRIPT_DIR
-XXX="%2212.34%2056.78%22"
-tester "ossim02" "curl -s -S --url $GSHOST?$WPSCMD&Identifier=py:ossim-test02&DataInputs=myint=12;mydouble=34.0;mystring=Yow;mypos=$XXX" "xyzzy"
-rm -f $OSSIM_BIN_DIR/ossim-test02.sh
-rm -f $WPS_SCRIPT_DIR/ossim-test02.py
+tester "ossim02" "curl -s -S --url $GSHOST?$WPSCMD&Identifier=py:ossim-test02&DataInputs=myint=12;mydouble=34.0;mystring=Yow" "xyzzy"
+#rm -f $OSSIM_BIN_DIR/ossim-test02.sh
+#rm -f $WPS_SCRIPT_DIR/ossim-test02.py
+
+cp -f tests/ossim-test03.sh $OSSIM_BIN_DIR/
+cp -f tmp/ossim-test03.py $WPS_SCRIPT_DIR
+ARGPOS="%2212.34,56.78%22"
+ARGBOX="%221,2,3,4.5%22"
+tester "ossim03" "curl -s -S --url $GSHOST?$WPSCMD&Identifier=py:ossim-test03&DataInputs=mypos=$ARGPOS;mybox=$ARGBOX;mycolor=blue" "xyzzy"
+#rm -f $OSSIM_BIN_DIR/ossim-test03.sh
+#rm -f $WPS_SCRIPT_DIR/ossim-test03.py

@@ -9,10 +9,6 @@
             "description": "an int",
             "datatype": "int"
         },
-        "mypos": {
-            "description": "a pos",
-            "datatype": "geo_pos_2d"
-        },
         "mystring": {
             "description": "a string",
             "datatype": "string"
